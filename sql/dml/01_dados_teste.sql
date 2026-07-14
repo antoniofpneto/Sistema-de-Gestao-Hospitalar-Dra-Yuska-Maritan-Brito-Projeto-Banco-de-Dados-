@@ -29,27 +29,44 @@ INSERT INTO PESSOA (id_pessoa, nome, cpf, data_nascimento, is_flamengo, telefone
 -- =========================================================
 -- 2. PACIENTE (subtipo de PESSOA, ids 1 a 5)
 -- =========================================================
-INSERT INTO PACIENTE (id_pessoa, num_convenio, alergias, grupo_sanguineo) VALUES
-(1, 'UNIMED-0001',    'Dipirona',           'O+'),
-(2, NULL,             'Nenhuma conhecida',  'A+'),
-(3, 'BRADESCO-0045',  'Penicilina',         'B-'),
-(4, NULL,             NULL,                 'AB+'),
-(5, 'AMIL-1123',      'Latex',              'O-');
+INSERT INTO PACIENTE (id_pessoa, num_convenio, grupo_sanguineo) VALUES
+(1, 'UNIMED-0001', 'O+'),
+(2, NULL,          'A+'),
+(3, 'BRADESCO-0045', 'B-'),
+(4, NULL,          'AB+'),
+(5, 'AMIL-1123',   'O-');
+
+INSERT INTO alergia_paciente (id_paciente, alergia) VALUES
+(1, 'Dipirona'),
+(3, 'Penicilina'),
+(5, 'Latex');
 
 -- =========================================================
 -- 3. PROFISSIONAL (subtipo de PESSOA, ids 6 a 15)
 -- =========================================================
-INSERT INTO PROFISSIONAL (id_pessoa, crm, data_admissao, especialidade) VALUES
-(6,  'CRM-PB 10234', '2022-02-01', 'Clinica Medica'),
-(7,  'CRM-PB 10567', '2021-03-15', 'Pediatria'),
-(8,  'CRM-PB 10789', '2023-01-10', 'Cirurgia Geral'),
-(9,  'CRM-PB 11023', '2022-08-20', 'Ginecologia e Obstetricia'),
-(10, 'CRM-PB 11245', '2023-06-05', 'Ortopedia'),
-(11, 'CRM-PB 08123', '2005-04-12', 'Clinica Médica'),
-(12, 'CRM-PB 07456', '2000-09-01', 'Cirurgia Geral'),
-(13, 'CRM-PB 09011', '2010-11-23', 'Pediatria'),
-(14, 'CRM-PB 06789', '1998-06-17', 'Ortopedia'),
-(15, 'CRM-PB 09345', '2012-02-28', 'Ginecologia e Obstetricia');
+INSERT INTO PROFISSIONAL (id_pessoa, crm, data_admissao) VALUES
+(6,  'CRM-PB 10234', '2022-02-01'),
+(7,  'CRM-PB 10567', '2021-03-15'),
+(8,  'CRM-PB 10789', '2023-01-10'),
+(9,  'CRM-PB 11023', '2022-08-20'),
+(10, 'CRM-PB 11245', '2023-06-05'),
+(11, 'CRM-PB 08123', '2005-04-12'),
+(12, 'CRM-PB 07456', '2000-09-01'),
+(13, 'CRM-PB 09011', '2010-11-23'),
+(14, 'CRM-PB 06789', '1998-06-17'),
+(15, 'CRM-PB 09345', '2012-02-28');
+
+INSERT INTO especialidade_profissional (id_profissional, especialidade) VALUES
+(6,  'Clinica Medica'),
+(7,  'Pediatria'),
+(8,  'Cirurgia Geral'),
+(9,  'Ginecologia e Obstetricia'),
+(10, 'Ortopedia'),
+(11, 'Clinica Médica'),
+(12, 'Cirurgia Geral'),
+(13, 'Pediatria'),
+(14, 'Ortopedia'),
+(15, 'Ginecologia e Obstetricia');
 
 -- =========================================================
 -- 4. RESIDENTE (subtipo de PROFISSIONAL, ids 6 a 10)
@@ -101,19 +118,19 @@ INSERT INTO ATENDIMENTO (id_atendimento, id_paciente, id_residente, id_preceptor
 INSERT INTO PROCEDIMENTO (id_procedimento, codigo, nome, tempo_medio_minutos, nivel_risco) VALUES
 (1, 'PRC-001', 'Sutura Simples',              20, 'BAIXO'),
 (2, 'PRC-002', 'Coleta de Sangue',            10, 'BAIXO'),
-(3, 'PRC-003', 'Aplicação de Medicação IV',   15, 'BAIXO'),
+(3, 'PRC-003', 'Aplicaçao de Medicaçao IV',   15, 'BAIXO'),
 (4, 'PRC-004', 'Curativo Complexo',           30, 'MEDIO'),
-(5, 'PRC-005', 'Intubação Orotraqueal',       25, 'ALTO'),
+(5, 'PRC-005', 'Intubaçao Orotraqueal',       25, 'ALTO'),
 (6, 'PRC-006', 'Drenagem Toracica',           40, 'ALTO'),
 (7, 'PRC-007', 'Raio-X Simples',              15, 'BAIXO'),
-(8, 'PRC-008', 'Biópsia',                     35, 'MEDIO');
+(8, 'PRC-008', 'Biopsia',                     35, 'MEDIO');
 
 -- =========================================================
 -- 9. PROCEDIMENTO_REALIZADO (10 registros, PK composta
 --    id_atendimento + id_procedimento)
 -- =========================================================
 INSERT INTO PROCEDIMENTO_REALIZADO (id_atendimento, id_procedimento, quantidade, tempo_real_minutos, observacao, faturado) VALUES
-(1,  1, 1, 22, 'Sem intercorrências',                       TRUE),
+(1,  1, 1, 22, 'Sem intercorrencias',                       TRUE),
 (2,  2, 1, 8,  NULL,                                        TRUE),
 (3,  5, 1, 28, 'Paciente estavel durante o procedimento',  FALSE),
 (4,  3, 2, 18, NULL,                                        TRUE),
@@ -121,7 +138,7 @@ INSERT INTO PROCEDIMENTO_REALIZADO (id_atendimento, id_procedimento, quantidade,
 (6,  7, 1, 12, NULL,                                        TRUE),
 (7,  4, 1, 33, 'Curativo trocado',                          TRUE),
 (8,  2, 1, 9,  NULL,                                        TRUE),
-(9,  8, 1, 40, 'Amostra enviada para laboratório',         FALSE),
+(9,  8, 1, 40, 'Amostra enviada para laboratorio',         FALSE),
 (10, 1, 1, 18, NULL,                                        TRUE);
 
 -- =========================================================

@@ -20,12 +20,20 @@ CREATE TABLE PACIENTE (
     -- Atributos:
     id_pessoa INT PRIMARY KEY,
     num_convenio VARCHAR(50), -- Nulo caso seja SUS
-    alergias TEXT,
     grupo_sanguineo VARCHAR(3),
     -- Restrições:
     CONSTRAINT fk_paciente_pessoa FOREIGN KEY (id_pessoa) REFERENCES PESSOA(id_pessoa) 
         ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT chk_grupo_sanguineo CHECK (grupo_sanguineo IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'))
+);
+
+-- Criação da tabela para associar alergias a pacientes
+CREATE TABLE alergia_paciente (
+    id_paciente INT NOT NULL,
+    alergia VARCHAR(100) NOT NULL,
+    PRIMARY KEY (id_paciente, alergia),
+    CONSTRAINT fk_alergia_paciente FOREIGN KEY (id_paciente) REFERENCES PACIENTE(id_pessoa)
+        ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- Criação da tabela para entidade PROFISSIONAL, especialização de PESSOA
@@ -34,9 +42,17 @@ CREATE TABLE PROFISSIONAL (
     id_pessoa INT PRIMARY KEY,
     crm VARCHAR(20) NOT NULL UNIQUE,
     data_admissao DATE NOT NULL,
-    especialidade VARCHAR(100) NOT NULL,
     -- Restrições:
     CONSTRAINT fk_profissional_pessoa FOREIGN KEY (id_pessoa) REFERENCES PESSOA(id_pessoa) 
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- Criação da tabela para associar especialidades a profissionais
+CREATE TABLE especialidade_profissional (
+    id_profissional INT NOT NULL,
+    especialidade VARCHAR(100) NOT NULL,
+    PRIMARY KEY (id_profissional, especialidade),
+    CONSTRAINT fk_especialidade_profissional FOREIGN KEY (id_profissional) REFERENCES PROFISSIONAL(id_pessoa)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 

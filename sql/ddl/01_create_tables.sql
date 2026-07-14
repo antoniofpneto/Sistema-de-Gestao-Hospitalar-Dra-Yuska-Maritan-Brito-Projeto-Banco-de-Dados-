@@ -1,14 +1,5 @@
 -- 01. Script para criar as tabelas do banco de dados do sistema de gestão hospitalar.
 
--- Remove o banco se ele já existir
-DROP DATABASE IF EXISTS hospital_db;
-
--- Cria o banco de dados do projeto
-CREATE DATABASE hospital_db;
-
--- COMANDO DO PSQL: Conecta no banco de dados que acabou de ser criado
--- \c hospital_db; (comentado porque estava dando erro no DBeaver)
-
 -- Criação das tabelas:
 
 -- Criação da tabela entidade PESSOA

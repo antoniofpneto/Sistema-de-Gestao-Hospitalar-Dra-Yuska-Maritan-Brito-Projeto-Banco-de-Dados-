@@ -28,7 +28,7 @@ CREATE TABLE PACIENTE (
 );
 
 -- Criação da tabela para associar alergias a pacientes
-CREATE TABLE alergia_paciente (
+CREATE TABLE ALERGIA_PACIENTE (
     id_paciente INT NOT NULL,
     alergia VARCHAR(100) NOT NULL,
     PRIMARY KEY (id_paciente, alergia),
@@ -48,7 +48,7 @@ CREATE TABLE PROFISSIONAL (
 );
 
 -- Criação da tabela para associar especialidades a profissionais
-CREATE TABLE especialidade_profissional (
+CREATE TABLE ESPECIALIDADE_PROFISSIONAL (
     id_profissional INT NOT NULL,
     especialidade VARCHAR(100) NOT NULL,
     PRIMARY KEY (id_profissional, especialidade),

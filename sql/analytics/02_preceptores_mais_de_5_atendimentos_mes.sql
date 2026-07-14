@@ -12,7 +12,7 @@ JOIN PRECEPTOR prec
 JOIN ATENDIMENTO a 
     ON prec.id_profissional = a.id_preceptor          -- Cruza com a tabela de atendimentos
 WHERE 
-    EXTRACT(MONTH FROM a.data_hora) = 6               -- <-- Troque pelo mês desejado (ex: 5 para Maio)
+    EXTRACT(MONTH FROM a.data_hora) = 5             
     AND EXTRACT(YEAR FROM a.data_hora) = 2026         -- <-- Troque pelo ano desejado
 GROUP BY 
     p.nome, 

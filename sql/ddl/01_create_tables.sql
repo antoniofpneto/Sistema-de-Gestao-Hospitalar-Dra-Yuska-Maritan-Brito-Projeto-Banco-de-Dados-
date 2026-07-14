@@ -153,8 +153,8 @@ CREATE TABLE ESCALA (
     CONSTRAINT fk_escala_unidade FOREIGN KEY (id_unidade) REFERENCES UNIDADE(id_unidade) ON UPDATE CASCADE,
     CONSTRAINT fk_escala_residente FOREIGN KEY (id_residente) REFERENCES RESIDENTE(id_profissional) ON UPDATE CASCADE,
     CONSTRAINT fk_escala_preceptor FOREIGN KEY (id_preceptor) REFERENCES PRECEPTOR(id_profissional) ON UPDATE CASCADE,
-    CONSTRAINT chk_dia_semana CHECK (dia_semana IN ('Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo')),
-    CONSTRAINT chk_turno CHECK (turno IN ('Manhã', 'Tarde', 'Noite')),
+    CONSTRAINT chk_dia_semana CHECK (dia_semana IN ('Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado', 'Domingo')),
+    CONSTRAINT chk_turno CHECK (turno IN ('Manha', 'Tarde', 'Noite')),
     CONSTRAINT uq_escala_residente UNIQUE (id_unidade, dia_semana, turno, id_residente) -- Sem turno duplicado
 );
 

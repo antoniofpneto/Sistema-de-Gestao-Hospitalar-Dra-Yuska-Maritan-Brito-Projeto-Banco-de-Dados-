@@ -16,5 +16,5 @@ JOIN RESIDENTE     res       ON res.id_profissional = a.id_residente
 JOIN PESSOA        pes_res   ON pes_res.id_pessoa = res.id_profissional
 JOIN PRECEPTOR     prec      ON prec.id_profissional = a.id_preceptor
 JOIN PESSOA        pes_prec  ON pes_prec.id_pessoa = prec.id_profissional
-WHERE a.id_paciente = 1          <-- id do paciente específico
+WHERE a.id_paciente = 1          -- id do paciente específico
 ORDER BY a.data_hora;

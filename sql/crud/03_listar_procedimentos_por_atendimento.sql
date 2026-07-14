@@ -13,5 +13,5 @@ SELECT
     pr.faturado
 FROM PROCEDIMENTO_REALIZADO pr
 JOIN PROCEDIMENTO proc ON proc.id_procedimento = pr.id_procedimento
-WHERE pr.id_atendimento = 1 <-- id do atendimento específico
+WHERE pr.id_atendimento = 1 -- id do atendimento específico
 ORDER BY proc.nome;

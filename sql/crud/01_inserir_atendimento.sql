@@ -1,4 +1,4 @@
-\c hospital_db;
+--\c hospital_db;
 
 -- =========================================================================
 -- 3.1 INSERIR UM NOVO ATENDIMENTO

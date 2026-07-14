@@ -36,7 +36,7 @@ INSERT INTO PACIENTE (id_pessoa, num_convenio, grupo_sanguineo) VALUES
 (4, NULL,          'AB+'),
 (5, 'AMIL-1123',   'O-');
 
-INSERT INTO ALERGIA_PACIENTE (id_paciente, alergia) VALUES
+INSERT INTO alergia_paciente (id_paciente, alergia) VALUES
 (1, 'Dipirona'),
 (3, 'Penicilina'),
 (5, 'Latex');
@@ -56,13 +56,13 @@ INSERT INTO PROFISSIONAL (id_pessoa, crm, data_admissao) VALUES
 (14, 'CRM-PB 06789', '1998-06-17'),
 (15, 'CRM-PB 09345', '2012-02-28');
 
-INSERT INTO ESPECIALIDADE_PROFISSIONAL (id_profissional, especialidade) VALUES
+INSERT INTO especialidade_profissional (id_profissional, especialidade) VALUES
 (6,  'Clinica Medica'),
 (7,  'Pediatria'),
 (8,  'Cirurgia Geral'),
 (9,  'Ginecologia e Obstetricia'),
 (10, 'Ortopedia'),
-(11, 'Clinica Medica'),
+(11, 'Clinica Médica'),
 (12, 'Cirurgia Geral'),
 (13, 'Pediatria'),
 (14, 'Ortopedia'),
@@ -118,9 +118,9 @@ INSERT INTO ATENDIMENTO (id_atendimento, id_paciente, id_residente, id_preceptor
 INSERT INTO PROCEDIMENTO (id_procedimento, codigo, nome, tempo_medio_minutos, nivel_risco) VALUES
 (1, 'PRC-001', 'Sutura Simples',              20, 'BAIXO'),
 (2, 'PRC-002', 'Coleta de Sangue',            10, 'BAIXO'),
-(3, 'PRC-003', 'Aplicacao de Medicacao IV',   15, 'BAIXO'),
+(3, 'PRC-003', 'Aplicaçao de Medicaçao IV',   15, 'BAIXO'),
 (4, 'PRC-004', 'Curativo Complexo',           30, 'MEDIO'),
-(5, 'PRC-005', 'Intubacao Orotraqueal',       25, 'ALTO'),
+(5, 'PRC-005', 'Intubaçao Orotraqueal',       25, 'ALTO'),
 (6, 'PRC-006', 'Drenagem Toracica',           40, 'ALTO'),
 (7, 'PRC-007', 'Raio-X Simples',              15, 'BAIXO'),
 (8, 'PRC-008', 'Biopsia',                     35, 'MEDIO');
@@ -151,4 +151,27 @@ SELECT setval(pg_get_serial_sequence('UNIDADE', 'id_unidade'), (SELECT MAX(id_un
 SELECT setval(pg_get_serial_sequence('ATENDIMENTO', 'id_atendimento'), (SELECT MAX(id_atendimento) FROM ATENDIMENTO));
 SELECT setval(pg_get_serial_sequence('PROCEDIMENTO', 'id_procedimento'), (SELECT MAX(id_procedimento) FROM PROCEDIMENTO));
 
+-- =========================================================================
+-- DADOS EXTRAS PARA VALIDAR AS CONSULTAS ANALÍTICAS 
+-- =========================================================================
+
+-- 1. Casos para a Consulta 4.2 (Preceptores com > 5 atendimentos no mês 05/2026)
+-- Inserindo 6 atendimentos no mesmo mês para o mesmo Preceptor e Residente
+INSERT INTO ATENDIMENTO (data_hora, duracao_minutos, id_paciente, id_residente, id_preceptor) 
+VALUES
+('2026-05-01 08:00:00', 30, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1)),
+('2026-05-05 09:30:00', 45, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1)),
+('2026-05-10 10:15:00', 20, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1)),
+('2026-05-15 14:00:00', 60, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1)),
+('2026-05-20 15:30:00', 15, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1)),
+('2026-05-25 11:00:00', 40, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1));
+
+
+-- 2. Casos para a Consulta 4.3 (Plantões por Unidade e Residente)
+-- Inserindo escalas fixas semanais para os residentes
+INSERT INTO ESCALA (id_unidade, id_residente, id_preceptor, dia_semana, turno) 
+VALUES
+((SELECT id_unidade FROM UNIDADE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 'Segunda', 'Manha'),
+((SELECT id_unidade FROM UNIDADE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 'Quarta', 'Tarde'),
+((SELECT id_unidade FROM UNIDADE LIMIT 1), (SELECT id_profissional FROM RESIDENTE OFFSET 1 LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 'Sexta', 'Noite');
 COMMIT;

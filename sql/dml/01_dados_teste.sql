@@ -1,17 +1,13 @@
 -- 02. Script de inserção de dados de teste para o sistema de gestão hospitalar.
 -- Requisito Etapa 1 (item 2): mínimo de 5 pacientes, 5 residentes, 5 preceptores,
--- 3 unidades, 10 atendimentos e 10 procedimentos realizados.
-
--- COMANDO DO PSQL: garante que estamos conectados no banco correto
-\c hospital_db;
 
 BEGIN;
 
 -- =========================================================
 -- 1. PESSOA
--- Pessoas 1-5  -> serão PACIENTES
--- Pessoas 6-10 -> serão PROFISSIONAIS / RESIDENTES
--- Pessoas 11-15 -> serão PROFISSIONAIS / PRECEPTORES
+-- Pessoas 1-5  -> PACIENTES
+-- Pessoas 6-10 -> PROFISSIONAIS / RESIDENTES
+-- Pessoas 11-15 -> PROFISSIONAIS / PRECEPTORES
 -- =========================================================
 INSERT INTO PESSOA (id_pessoa, nome, cpf, data_nascimento, is_flamengo, telefone) VALUES
 (1,  'Ana Beatriz Souza Lima',      '12345678901', '1985-03-12', TRUE,  '83991234501'),
@@ -19,16 +15,16 @@ INSERT INTO PESSOA (id_pessoa, nome, cpf, data_nascimento, is_flamengo, telefone
 (3,  'Fernanda Costa Rocha',        '34567890123', '1978-11-05', TRUE,  '83991234503'),
 (4,  'Bruno Henrique Alves',        '45678901234', '2000-01-30', FALSE, '83991234504'),
 (5,  'Juliana Pereira Dias',        '56789012345', '1965-09-18', TRUE,  '83991234505'),
-(6,  'Marcos Vinícius Silva',       '67890123456', '1996-04-10', FALSE, '83998887701'),
+(6,  'Marcos Vinicius Silva',       '67890123456', '1996-04-10', FALSE, '83998887701'),
 (7,  'Larissa Mendes Farias',       '78901234567', '1995-06-25', TRUE,  '83998887702'),
 (8,  'Rafael Augusto Torres',      '89012345678', '1994-12-02', FALSE, '83998887703'),
 (9,  'Camila Andrade Souza',        '90123456789', '1997-02-14', TRUE,  '83998887704'),
 (10, 'Thiago Barbosa Lima',         '01234567890', '1993-08-08', FALSE, '83998887705'),
-(11, 'Patrícia Gomes Melo',         '11122233344', '1975-05-19', TRUE,  '83997776601'),
+(11, 'Patricia Gomes Melo',         '11122233344', '1975-05-19', TRUE,  '83997776601'),
 (12, 'Eduardo Ramos Vieira',        '22233344455', '1970-10-01', FALSE, '83997776602'),
 (13, 'Simone Cavalcanti Barros',    '33344455566', '1980-03-27', FALSE, '83997776603'),
-(14, 'André Luiz Ferreira',         '44455566677', '1968-07-14', TRUE,  '83997776604'),
-(15, 'Beatriz Nogueira Sá',         '55566677788', '1982-01-09', FALSE, '83997776605');
+(14, 'Andre Luiz Ferreira',         '44455566677', '1968-07-14', TRUE,  '83997776604'),
+(15, 'Beatriz Nogueira Sa',         '55566677788', '1982-01-09', FALSE, '83997776605');
 
 -- =========================================================
 -- 2. PACIENTE (subtipo de PESSOA, ids 1 a 5)
@@ -38,22 +34,22 @@ INSERT INTO PACIENTE (id_pessoa, num_convenio, alergias, grupo_sanguineo) VALUES
 (2, NULL,             'Nenhuma conhecida',  'A+'),
 (3, 'BRADESCO-0045',  'Penicilina',         'B-'),
 (4, NULL,             NULL,                 'AB+'),
-(5, 'AMIL-1123',      'Látex',              'O-');
+(5, 'AMIL-1123',      'Latex',              'O-');
 
 -- =========================================================
 -- 3. PROFISSIONAL (subtipo de PESSOA, ids 6 a 15)
 -- =========================================================
 INSERT INTO PROFISSIONAL (id_pessoa, crm, data_admissao, especialidade) VALUES
-(6,  'CRM-PB 10234', '2022-02-01', 'Clínica Médica'),
+(6,  'CRM-PB 10234', '2022-02-01', 'Clinica Medica'),
 (7,  'CRM-PB 10567', '2021-03-15', 'Pediatria'),
 (8,  'CRM-PB 10789', '2023-01-10', 'Cirurgia Geral'),
-(9,  'CRM-PB 11023', '2022-08-20', 'Ginecologia e Obstetrícia'),
+(9,  'CRM-PB 11023', '2022-08-20', 'Ginecologia e Obstetricia'),
 (10, 'CRM-PB 11245', '2023-06-05', 'Ortopedia'),
-(11, 'CRM-PB 08123', '2005-04-12', 'Clínica Médica'),
+(11, 'CRM-PB 08123', '2005-04-12', 'Clinica Médica'),
 (12, 'CRM-PB 07456', '2000-09-01', 'Cirurgia Geral'),
 (13, 'CRM-PB 09011', '2010-11-23', 'Pediatria'),
 (14, 'CRM-PB 06789', '1998-06-17', 'Ortopedia'),
-(15, 'CRM-PB 09345', '2012-02-28', 'Ginecologia e Obstetrícia');
+(15, 'CRM-PB 09345', '2012-02-28', 'Ginecologia e Obstetricia');
 
 -- =========================================================
 -- 4. RESIDENTE (subtipo de PROFISSIONAL, ids 6 a 10)
@@ -82,7 +78,7 @@ INSERT INTO UNIDADE (id_unidade, nome, tipo, capacity_leitos) VALUES
 (1, 'Enfermaria Geral',      'Enfermaria',     40),
 (2, 'UTI Adulto',            'UTI',            10),
 (3, 'Pronto-Socorro Central','Pronto-Socorro', 15),
-(4, 'Ambulatório Central',   'Ambulatório',    0);
+(4, 'Ambulatorio Central',   'Ambulatorio',    0);
 
 -- =========================================================
 -- 7. ATENDIMENTO (10 atendimentos)
@@ -108,7 +104,7 @@ INSERT INTO PROCEDIMENTO (id_procedimento, codigo, nome, tempo_medio_minutos, ni
 (3, 'PRC-003', 'Aplicação de Medicação IV',   15, 'BAIXO'),
 (4, 'PRC-004', 'Curativo Complexo',           30, 'MEDIO'),
 (5, 'PRC-005', 'Intubação Orotraqueal',       25, 'ALTO'),
-(6, 'PRC-006', 'Drenagem Torácica',           40, 'ALTO'),
+(6, 'PRC-006', 'Drenagem Toracica',           40, 'ALTO'),
 (7, 'PRC-007', 'Raio-X Simples',              15, 'BAIXO'),
 (8, 'PRC-008', 'Biópsia',                     35, 'MEDIO');
 
@@ -119,7 +115,7 @@ INSERT INTO PROCEDIMENTO (id_procedimento, codigo, nome, tempo_medio_minutos, ni
 INSERT INTO PROCEDIMENTO_REALIZADO (id_atendimento, id_procedimento, quantidade, tempo_real_minutos, observacao, faturado) VALUES
 (1,  1, 1, 22, 'Sem intercorrências',                       TRUE),
 (2,  2, 1, 8,  NULL,                                        TRUE),
-(3,  5, 1, 28, 'Paciente estável durante o procedimento',  FALSE),
+(3,  5, 1, 28, 'Paciente estavel durante o procedimento',  FALSE),
 (4,  3, 2, 18, NULL,                                        TRUE),
 (5,  6, 1, 45, 'Procedimento de alta complexidade',        FALSE),
 (6,  7, 1, 12, NULL,                                        TRUE),

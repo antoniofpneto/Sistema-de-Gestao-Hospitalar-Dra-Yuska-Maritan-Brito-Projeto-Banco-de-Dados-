@@ -19,4 +19,4 @@ GROUP BY
     p.nome
 ORDER BY 
     u.nome ASC,                                      -- Agrupa visualmente por unidade
-    qtd_plantoes_mes DESC;                           -- Mostra quem dá mais plantões no topo
+    qtd_plantoes_mes DESC;                           -- Mostra quem tem mais plantões no topo

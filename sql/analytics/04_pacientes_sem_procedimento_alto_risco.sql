@@ -19,5 +19,5 @@ WHERE pac.id_pessoa NOT IN (
         ON pr.id_procedimento = proc.id_procedimento
     WHERE proc.nivel_risco = 'ALTO'
 )
-ORDER BY 
+ORDER BY
     p.nome ASC;

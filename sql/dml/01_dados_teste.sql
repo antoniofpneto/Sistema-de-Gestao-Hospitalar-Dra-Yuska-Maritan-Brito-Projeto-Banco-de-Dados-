@@ -36,7 +36,7 @@ INSERT INTO PACIENTE (id_pessoa, num_convenio, grupo_sanguineo) VALUES
 (4, NULL,          'AB+'),
 (5, 'AMIL-1123',   'O-');
 
-INSERT INTO alergia_paciente (id_paciente, alergia) VALUES
+INSERT INTO ALERGIA_PACIENTE (id_paciente, alergia) VALUES
 (1, 'Dipirona'),
 (3, 'Penicilina'),
 (5, 'Latex');
@@ -56,13 +56,13 @@ INSERT INTO PROFISSIONAL (id_pessoa, crm, data_admissao) VALUES
 (14, 'CRM-PB 06789', '1998-06-17'),
 (15, 'CRM-PB 09345', '2012-02-28');
 
-INSERT INTO especialidade_profissional (id_profissional, especialidade) VALUES
+INSERT INTO ESPECIALIDADE_PROFISSIONAL (id_profissional, especialidade) VALUES
 (6,  'Clinica Medica'),
 (7,  'Pediatria'),
 (8,  'Cirurgia Geral'),
 (9,  'Ginecologia e Obstetricia'),
 (10, 'Ortopedia'),
-(11, 'Clinica Médica'),
+(11, 'Clinica Medica'),
 (12, 'Cirurgia Geral'),
 (13, 'Pediatria'),
 (14, 'Ortopedia'),
@@ -118,9 +118,9 @@ INSERT INTO ATENDIMENTO (id_atendimento, id_paciente, id_residente, id_preceptor
 INSERT INTO PROCEDIMENTO (id_procedimento, codigo, nome, tempo_medio_minutos, nivel_risco) VALUES
 (1, 'PRC-001', 'Sutura Simples',              20, 'BAIXO'),
 (2, 'PRC-002', 'Coleta de Sangue',            10, 'BAIXO'),
-(3, 'PRC-003', 'Aplicaçao de Medicaçao IV',   15, 'BAIXO'),
+(3, 'PRC-003', 'Aplicacao de Medicacao IV',   15, 'BAIXO'),
 (4, 'PRC-004', 'Curativo Complexo',           30, 'MEDIO'),
-(5, 'PRC-005', 'Intubaçao Orotraqueal',       25, 'ALTO'),
+(5, 'PRC-005', 'Intubacao Orotraqueal',       25, 'ALTO'),
 (6, 'PRC-006', 'Drenagem Toracica',           40, 'ALTO'),
 (7, 'PRC-007', 'Raio-X Simples',              15, 'BAIXO'),
 (8, 'PRC-008', 'Biopsia',                     35, 'MEDIO');

@@ -7,7 +7,7 @@ DROP DATABASE IF EXISTS hospital_db;
 CREATE DATABASE hospital_db;
 
 -- COMANDO DO PSQL: Conecta no banco de dados que acabou de ser criado
-\c hospital_db;
+-- \c hospital_db; (comentado porque estava dando erro no DBeaver)
 
 -- Criação das tabelas:
 

@@ -84,9 +84,9 @@ CREATE TABLE UNIDADE (
     id_unidade SERIAL PRIMARY KEY, -- Mesma coisa que foi explicada anteriormente na tabela PESSOA
     nome VARCHAR(100) NOT NULL UNIQUE,
     tipo VARCHAR(50) NOT NULL,
-    capacity_leitos INT NOT NULL DEFAULT 0,
+    capacidade_leitos INT NOT NULL DEFAULT 0,
     -- Restrições:
-    CONSTRAINT chk_capacity CHECK (capacity_leitos >= 0)
+    CONSTRAINT chk_capacity CHECK (capacidade_leitos >= 0)
 );
 
 -- Criação da tabela para entidade ATENDIMENTO

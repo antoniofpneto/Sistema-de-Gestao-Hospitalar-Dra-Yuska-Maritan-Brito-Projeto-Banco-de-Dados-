@@ -91,7 +91,7 @@ INSERT INTO PRECEPTOR (id_profissional, titulacao) VALUES
 -- =========================================================
 -- 6. UNIDADE (mínimo 3, incluímos 4 para refletir o enunciado)
 -- =========================================================
-INSERT INTO UNIDADE (id_unidade, nome, tipo, capacity_leitos) VALUES
+INSERT INTO UNIDADE (id_unidade, nome, tipo, capacidade_leitos) VALUES
 (1, 'Enfermaria Geral',      'Enfermaria',     40),
 (2, 'UTI Adulto',            'UTI',            10),
 (3, 'Pronto-Socorro Central','Pronto-Socorro', 15),

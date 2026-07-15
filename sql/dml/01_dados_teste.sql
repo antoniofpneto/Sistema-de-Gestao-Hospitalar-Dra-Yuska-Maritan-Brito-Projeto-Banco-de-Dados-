@@ -141,22 +141,22 @@ INSERT INTO PROCEDIMENTO_REALIZADO (id_atendimento, id_procedimento, quantidade,
 (9,  8, 1, 40, 'Amostra enviada para laboratorio',         FALSE),
 (10, 1, 1, 18, NULL,                                        TRUE);
 
--- =========================================================
+INSERT INTO ESCALA (id_unidade, id_residente, id_preceptor, dia_semana, turno) 
+VALUES
+((SELECT id_unidade FROM UNIDADE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 'Segunda', 'Manha'),
+((SELECT id_unidade FROM UNIDADE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 'Quarta', 'Tarde'),
+((SELECT id_unidade FROM UNIDADE LIMIT 1), (SELECT id_profissional FROM RESIDENTE OFFSET 1 LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 'Sexta', 'Noite');
+COMMIT;
+
 -- Sincroniza as sequences das colunas SERIAL, já que os IDs
 -- foram inseridos manualmente (evita conflito em INSERTs futuros
 -- que usem DEFAULT/nextval).
--- =========================================================
 SELECT setval(pg_get_serial_sequence('PESSOA', 'id_pessoa'), (SELECT MAX(id_pessoa) FROM PESSOA));
 SELECT setval(pg_get_serial_sequence('UNIDADE', 'id_unidade'), (SELECT MAX(id_unidade) FROM UNIDADE));
 SELECT setval(pg_get_serial_sequence('ATENDIMENTO', 'id_atendimento'), (SELECT MAX(id_atendimento) FROM ATENDIMENTO));
 SELECT setval(pg_get_serial_sequence('PROCEDIMENTO', 'id_procedimento'), (SELECT MAX(id_procedimento) FROM PROCEDIMENTO));
 
--- =========================================================================
--- DADOS EXTRAS PARA VALIDAR AS CONSULTAS ANALÍTICAS 
--- =========================================================================
-
--- 1. Casos para a Consulta 4.2 (Preceptores com > 5 atendimentos no mês 05/2026)
--- Inserindo 6 atendimentos no mesmo mês para o mesmo Preceptor e Residente
+-- Atendimentos extras para que apareça na consulta de >5 atendimentos
 INSERT INTO ATENDIMENTO (data_hora, duracao_minutos, id_paciente, id_residente, id_preceptor) 
 VALUES
 ('2026-05-01 08:00:00', 30, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1)),
@@ -165,13 +165,3 @@ VALUES
 ('2026-05-15 14:00:00', 60, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1)),
 ('2026-05-20 15:30:00', 15, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1)),
 ('2026-05-25 11:00:00', 40, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1));
-
-
--- 2. Casos para a Consulta 4.3 (Plantões por Unidade e Residente)
--- Inserindo escalas fixas semanais para os residentes
-INSERT INTO ESCALA (id_unidade, id_residente, id_preceptor, dia_semana, turno) 
-VALUES
-((SELECT id_unidade FROM UNIDADE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 'Segunda', 'Manha'),
-((SELECT id_unidade FROM UNIDADE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 'Quarta', 'Tarde'),
-((SELECT id_unidade FROM UNIDADE LIMIT 1), (SELECT id_profissional FROM RESIDENTE OFFSET 1 LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 'Sexta', 'Noite');
-COMMIT;

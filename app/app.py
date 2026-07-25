@@ -29,23 +29,35 @@ def index():
     pacientes = Paciente.query.join(Pessoa).all()
     return render_template('index.html', pacientes=pacientes)
 
-@app.route('/cadastrar', methods=['POST'])
-def cadastrar_paciente():
+@app.route('/paciente/novo', methods=['POST'])
+def novo_paciente():
+    # 1. Captura dos dados do formulário HTML (atributos 'name' das tags <input>)
     nome = request.form.get('nome')
     cpf = request.form.get('cpf')
-    telefone = request.form.get('telefone')
     data_nascimento = request.form.get('data_nascimento')
+    telefone = request.form.get('telefone')
     
-    # Criando os objetos Python (o SQLAlchemy fará o INSERT)
-    nova_pessoa = Pessoa(nome=nome, cpf=cpf, data_nascimento=data_nascimento, telefone=telefone)
+    # 2. Instanciamos o objeto Pessoa (nossa entidade "Pai")
+    nova_pessoa = Pessoa(
+        nome=nome, 
+        cpf=cpf, 
+        data_nascimento=data_nascimento, 
+        telefone=telefone
+    )
     db.session.add(nova_pessoa)
-    db.session.commit() # Salvando a pessoa primeiro para gerar o id_pessoa
     
+    # 3. Sincronização intermediária
+    db.session.flush() 
+    
+    # 4. Instanciamos o objeto Paciente (entidade "Filha"), usando o ID recém-gerado
     novo_paciente = Paciente(id_pessoa=nova_pessoa.id_pessoa)
     db.session.add(novo_paciente)
-    db.session.commit() # Confirmando a transação
     
-    return redirect('/')
+    # 5. Efetivação atômica no banco de dados
+    db.session.commit() 
+    
+    # 6. Redireciona o usuário de volta para a tabela principal
+    return redirect(url_for('index'))
 
 @app.route('/paciente/deletar/<int:id>', methods=['POST'])
 def deletar_paciente(id):

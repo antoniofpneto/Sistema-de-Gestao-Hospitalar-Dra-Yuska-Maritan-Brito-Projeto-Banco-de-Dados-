@@ -16,8 +16,8 @@ class Pessoa(db.Model):
     is_flamengo = db.Column(db.Boolean, nullable=False, default=False)
     telefone = db.Column(db.String(20), nullable=False)
 
-    paciente = db.relationship('Paciente', backref='pessoa', uselist=False)
-    profissional = db.relationship('Profissional', backref='pessoa', uselist=False)
+    paciente = db.relationship('Paciente', backref='pessoa', uselist=False, cascade="all, delete-orphan")
+    profissional = db.relationship('Profissional', backref='pessoa', uselist=False, cascade="all, delete-orphan")
 
     # restrição de tamanho do CPF
     __table_args__ = (

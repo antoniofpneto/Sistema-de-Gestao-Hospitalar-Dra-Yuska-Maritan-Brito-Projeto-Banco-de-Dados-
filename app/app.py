@@ -1,6 +1,6 @@
 # app.py
 import os
-from flask import Flask, render_template, request, redirect, url_form
+from flask import Flask, render_template, request, redirect, url_for
 from models import db, Pessoa, Paciente
 from dotenv import load_dotenv
 

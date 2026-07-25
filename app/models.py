@@ -113,7 +113,7 @@ class Residente(db.Model):
     internacoes = db.relationship('Internacao', backref='residente_rel')
 
     __table_args__ = (
-        db.CheckConstraint("ano_residencia IN ('R1', 'R2', 'R3')", name = 'chk_ano_residencia')
+        db.CheckConstraint("ano_residencia IN ('R1', 'R2', 'R3')", name = 'chk_ano_residencia'),
     )
 
 
@@ -131,7 +131,7 @@ class Unidade(db.Model):
     internacoes = db.relationship('Internacao', backref='unidade_rel')
 
     __table_args__ = (
-        db.CheckConstraint("capacidade_leitos >= 0", name = 'chk_capacity')
+        db.CheckConstraint("capacidade_leitos >= 0", name = 'chk_capacity'),
     )
 
 
@@ -163,7 +163,7 @@ class Internacao(db.Model):
     data_hora_saida = db.Column(db.DateTime)
 
     __table_args__ = (
-        db.CheckConstraint("data_hora_saida IS NULL OR data_hora_saida >= data_hora_entrada", name = 'chk_datas_internacao')
+        db.CheckConstraint("data_hora_saida IS NULL OR data_hora_saida >= data_hora_entrada", name = 'chk_datas_internacao'),
     )
 
 
@@ -197,7 +197,7 @@ class ProcedimentoRealizado(db.Model):
 
     __table_args__ = (
         db.CheckConstraint("quantidade > 0", name = 'chk_quantidade'),
-        db.CheckConstraint("tempo_real_minutos > 0", name = 'chk_tempo_real')
+        db.CheckConstraint("tempo_real_minutos > 0", name = 'chk_tempo_real'),
     )
 
 

@@ -11,7 +11,7 @@ class Pessoa(db.Model):
     
     id_pessoa = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(150), nullable=False)
-    cpf = db.Column(db.String(11), unique=True, nullable=False)
+    cpf = db.Column(db.String(11), unique=True, nullable=False) # CPF como uma chave candidata
     data_nascimento = db.Column(db.Date, nullable=False)
     is_flamengo = db.Column(db.Boolean, nullable=False, default=False)
     telefone = db.Column(db.String(20), nullable=False)
@@ -19,6 +19,10 @@ class Pessoa(db.Model):
     paciente = db.relationship('Paciente', backref='pessoa', uselist=False)
     profissional = db.relationship('Profissional', backref='pessoa', uselist=False)
 
+    # restrição de tamanho do CPF
+    __table_args__ = (
+        db.CheckConstraint('LENGTH(cpf) = 11', name='chk_cpf_formato'),
+    )
 
 class Paciente(db.Model):
     __tablename__ = 'paciente'
@@ -32,6 +36,13 @@ class Paciente(db.Model):
     internacoes = db.relationship('Internacao', backref='paciente_rel')
     alergias = db.relationship('AlergiaPaciente', backref='paciente_rel', cascade="all, delete-orphan")
 
+    # restrição do tipo sanguíneo
+    __table_args__ = (
+        db.CheckConstraint(
+            "grupo_sanguineo IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')", 
+            name='chk_grupo_sanguineo'
+        ),
+    )
 
 class AlergiaPaciente(db.Model):
     __tablename__ = 'alergia_paciente'
@@ -70,6 +81,11 @@ class HistoricoPapel(db.Model):
     data_inicio = db.Column(db.Date, nullable=False)
     data_fim = db.Column(db.Date)
 
+    # Restrições de papel e validade das datas
+    __table_args__ = (
+        db.CheckConstraint("papel IN ('Residente', 'Preceptor')", name='chk_papel'),
+        db.CheckConstraint("data_fim IS NULL OR data_fim >= data_inicio", name='chk_datas_historico'),
+    )
 
 class Preceptor(db.Model):
     __tablename__ = 'preceptor'
@@ -81,6 +97,10 @@ class Preceptor(db.Model):
     escalas = db.relationship('Escala', backref='preceptor_rel')
     internacoes = db.relationship('Internacao', backref='preceptor_rel')
 
+    __table_args__ = (
+        db.CheckConstraint("titulacao IN ('Especialista', 'Mestre', 'Doutor', 'Livre-Docente')", name='chk_titulacao'),
+    )
+
 
 class Residente(db.Model):
     __tablename__ = 'residente'
@@ -91,6 +111,10 @@ class Residente(db.Model):
     atendimentos = db.relationship('Atendimento', backref='residente_rel')
     escalas = db.relationship('Escala', backref='residente_rel')
     internacoes = db.relationship('Internacao', backref='residente_rel')
+
+    __table_args__ = (
+        db.CheckConstraint("ano_residencia IN ('R1', 'R2', 'R3')", name = 'chk_ano_residencia')
+    )
 
 
 
@@ -106,6 +130,10 @@ class Unidade(db.Model):
     escalas = db.relationship('Escala', backref='unidade_rel')
     internacoes = db.relationship('Internacao', backref='unidade_rel')
 
+    __table_args__ = (
+        db.CheckConstraint("capacidade_leitos >= 0", name = 'chk_capacity')
+    )
+
 
 class Atendimento(db.Model):
     __tablename__ = 'atendimento'
@@ -119,6 +147,9 @@ class Atendimento(db.Model):
 
     procedimentos_realizados = db.relationship('ProcedimentoRealizado', backref='atendimento_rel')
 
+    __table_args__ = (
+        db.CheckConstraint("duracao_minutos > 0", name = 'chk_duracao'),
+    )
 
 class Internacao(db.Model):
     __tablename__ = 'internacao'
@@ -130,6 +161,10 @@ class Internacao(db.Model):
     id_preceptor = db.Column(db.Integer, db.ForeignKey('preceptor.id_profissional', onupdate='CASCADE'), nullable=False)
     data_hora_entrada = db.Column(db.DateTime, nullable=False)
     data_hora_saida = db.Column(db.DateTime)
+
+    __table_args__ = (
+        db.CheckConstraint("data_hora_saida IS NULL OR data_hora_saida >= data_hora_entrada", name = 'chk_datas_internacao')
+    )
 
 
 # PROCEDIMENTOS
@@ -144,6 +179,10 @@ class Procedimento(db.Model):
 
     realizacoes = db.relationship('ProcedimentoRealizado', backref='procedimento_rel')
 
+    __table_args__ = (
+        db.CheckConstraint("tempo_medio_minutos > 0", name = 'chk_tempo_medio'),
+        db.CheckConstraint("nivel_risco IN ('BAIXO', 'MEDIO', 'ALTO')", name = 'chk_nivel_risco'),
+    )
 
 class ProcedimentoRealizado(db.Model):
     __tablename__ = 'procedimento_realizado'
@@ -155,6 +194,11 @@ class ProcedimentoRealizado(db.Model):
     tempo_real_minutos = db.Column(db.Integer, nullable=False)
     observacao = db.Column(db.Text)
     faturado = db.Column(db.Boolean, nullable=False, default=False)
+
+    __table_args__ = (
+        db.CheckConstraint("quantidade > 0", name = 'chk_quantidade'),
+        db.CheckConstraint("tempo_real_minutos > 0", name = 'chk_tempo_real')
+    )
 
 
 # ESCALAS
@@ -169,5 +213,7 @@ class Escala(db.Model):
     turno = db.Column(db.String(15), nullable=False)
 
     __table_args__ = (
+        db.CheckConstraint("dia_semana IN ('Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado', 'Domingo')", name = 'chk_dia_semana'),
+        db.CheckConstraint("turno IN ('Manha', 'Tarde', 'Noite')", name = 'chk_turno'),
         db.UniqueConstraint('id_unidade', 'dia_semana', 'turno', 'id_residente', name='uq_escala_residente'),
     )

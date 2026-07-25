@@ -1,0 +1,100 @@
+<!-- app/templates/pacientes.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Gestão de Pacientes</h2>
+    <!-- Botão de Inserção -->
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCadastro">
+        <i class="bi bi-person-plus"></i> Novo Paciente
+    </button>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Telefone</th>
+                    <th>Flamenguista?</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pacientes %}
+                <tr>
+                    <td>{{ p.id_pessoa }}</td>
+                    <td>{{ p.pessoa.nome }}</td>
+                    <td>{{ p.pessoa.cpf }}</td>
+                    <td>{{ p.pessoa.telefone }}</td>
+                    <td>
+                        <!-- Renderização visual do booleano -->
+                        {% if p.pessoa.is_flamengo %}
+                            <span class="badge bg-success">Sim</span>
+                        {% else %}
+                            <span class="badge bg-danger">Não</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <!-- Botões de Ação com url_for -->
+                        <a href="{{ url_for('detalhe_paciente', id_pessoa=p.id_pessoa) }}" class="btn btn-sm btn-info text-white" title="Prontuário">
+                            <i class="bi bi-eye"></i> Detalhes
+                        </a>
+
+                        <a href="{{ url_for('editar_paciente', id=p.id_pessoa) }}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+
+                        <form action="{{ url_for('deletar_paciente', id=p.id_pessoa) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Excluir paciente permanentemente?')">
+                                <i class="bi bi-trash"></i> Excluir
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">Nenhum paciente cadastrado no sistema.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal de Cadastro de Paciente -->
+<div class="modal fade" id="modalCadastro" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">Cadastrar Novo Paciente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/paciente/novo" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3"><label>Nome Completo</label><input type="text" class="form-control" name="nome" required></div>
+                    <div class="mb-3"><label>CPF</label><input type="text" class="form-control" name="cpf" maxlength="11" required></div>
+                    <div class="mb-3"><label>Telefone</label><input type="text" class="form-control" name="telefone" required></div>
+                    <div class="mb-3"><label>Data de Nascimento</label><input type="date" class="form-control" name="data_nascimento" required></div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="is_flamengo" value="true" id="checkFlamengo">
+                        <label class="form-check-label" for="checkFlamengo">Paciente é Flamenguista</label>
+                    </div>
+
+                    <hr>
+                    <div class="mb-3"><label>Número do Convênio</label><input type="text" class="form-control" name="num_convenio"></div>
+                    <div class="mb-3"><label>Grupo Sanguíneo</label><input type="text" class="form-control" name="grupo_sanguineo" placeholder="Ex: O+"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

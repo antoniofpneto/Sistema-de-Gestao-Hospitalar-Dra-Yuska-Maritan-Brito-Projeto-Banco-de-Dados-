@@ -1,0 +1,58 @@
+<!-- app/templates/paciente_detalhe.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/pacientes" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Voltar para a lista</a>
+</div>
+
+<div class="row">
+    <!-- Coluna de Informações Pessoais -->
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Dados Pessoais</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Nome:</strong> {{ paciente.pessoa.nome }}</p>
+                <p><strong>CPF:</strong> {{ paciente.pessoa.cpf }}</p>
+                <p><strong>Data de Nasc.:</strong> {{ paciente.pessoa.data_nascimento.strftime('%d/%m/%Y') }}</p>
+                <p><strong>Telefone:</strong> {{ paciente.pessoa.telefone }}</p>
+                <p><strong>Flamenguista:</strong> {{ 'Sim' if paciente.pessoa.is_flamengo else 'Não' }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coluna de Informações Clínicas -->
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">Prontuário Médico</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <p><strong>Convênio:</strong> {{ paciente.num_convenio or 'SUS' }}</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <p><strong>Grupo Sanguíneo:</strong> <span class="badge bg-danger fs-6">{{ paciente.grupo_sanguineo or 'Não informado' }}</span></p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <h6>Alergias Registradas</h6>
+                {% if paciente.alergias %}
+                    <ul class="list-group list-group-flush">
+                        {% for alergia in paciente.alergias %}
+                            <li class="list-group-item text-danger"><i class="bi bi-exclamation-triangle-fill"></i> {{ alergia.alergia }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Nenhuma alergia registrada.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

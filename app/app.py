@@ -24,40 +24,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 @app.route('/')
-def index():
-    # Consulta básica com ORM: listar todos os pacientes com seus dados de Pessoa
-    pacientes = Paciente.query.join(Pessoa).all()
-    return render_template('index.html', pacientes=pacientes)
+def dashboard():
+    return render_template('dashboard.html')
 
-@app.route('/paciente/novo', methods=['POST'])
-def novo_paciente():
-    # 1. Captura dos dados do formulário HTML (atributos 'name' das tags <input>)
-    nome = request.form.get('nome')
-    cpf = request.form.get('cpf')
-    data_nascimento = request.form.get('data_nascimento')
-    telefone = request.form.get('telefone')
-    
-    # 2. Instanciamos o objeto Pessoa (nossa entidade "Pai")
-    nova_pessoa = Pessoa(
-        nome=nome, 
-        cpf=cpf, 
-        data_nascimento=data_nascimento, 
-        telefone=telefone
-    )
-    db.session.add(nova_pessoa)
-    
-    # 3. Sincronização intermediária
-    db.session.flush() 
-    
-    # 4. Instanciamos o objeto Paciente (entidade "Filha"), usando o ID recém-gerado
-    novo_paciente = Paciente(id_pessoa=nova_pessoa.id_pessoa)
-    db.session.add(novo_paciente)
-    
-    # 5. Efetivação atômica no banco de dados
-    db.session.commit() 
-    
-    # 6. Redireciona o usuário de volta para a tabela principal
-    return redirect(url_for('index'))
 
 @app.route('/paciente/deletar/<int:id>', methods=['POST'])
 def deletar_paciente(id):
@@ -69,7 +38,7 @@ def deletar_paciente(id):
     db.session.delete(pessoa)
     db.session.commit()
     
-    return redirect(url_for('index'))
+    return redirect(url_for('dashboard'))
 
 @app.route('/paciente/editar/<int:id>', methods=['GET', 'POST'])
 def editar_paciente(id):
@@ -84,7 +53,7 @@ def editar_paciente(id):
         # ... atualize outros campos que desejar
         
         db.session.commit() # Salva as edições no banco
-        return redirect(url_for('index'))
+        return redirect(url_for('dashboard'))
 
     # Se for GET, apenas renderiza uma página simples de edição 
     # (Você pode criar um editar_paciente.html depois similar ao cadastro)
@@ -95,6 +64,60 @@ def editar_paciente(id):
         <button type="submit">Atualizar</button>
     </form>
     """
+
+@app.route('/paciente/novo', methods=['POST'])
+def novo_paciente():
+    # 1. Captura de todos os campos gerais da Pessoa
+    nome = request.form.get('nome')
+    cpf = request.form.get('cpf')
+    data_nascimento = request.form.get('data_nascimento')
+    telefone = request.form.get('telefone')
+    
+    # 2. Tratamento específico para o checkbox booleano
+    # Se vier algo no formulário, é True. Se vier None (desmarcado), é False.
+    is_flamengo_form = request.form.get('is_flamengo')
+    is_flamengo = True if is_flamengo_form else False
+    
+    # 3. Captura dos campos específicos do Paciente
+    num_convenio = request.form.get('num_convenio')
+    grupo_sanguineo = request.form.get('grupo_sanguineo')
+    
+    # 4. Instancia e salva a entidade "Pai" (Pessoa) com todos os campos
+    nova_pessoa = Pessoa(
+        nome=nome, 
+        cpf=cpf, 
+        data_nascimento=data_nascimento, 
+        telefone=telefone,
+        is_flamengo=is_flamengo
+    )
+    db.session.add(nova_pessoa)
+    db.session.flush() # Sincroniza para gerar o id_pessoa no banco
+    
+    # 5. Instancia e salva a entidade "Filha" (Paciente) com os campos médicos
+    novo_paciente = Paciente(
+        id_pessoa=nova_pessoa.id_pessoa,
+        num_convenio=num_convenio,
+        grupo_sanguineo=grupo_sanguineo
+    )
+    db.session.add(novo_paciente)
+    
+    # 6. Efetivação atômica da transação
+    db.session.commit() 
+    
+    # 7. Redireciona de volta para a lista de pacientes
+    return redirect(url_for('listar_pacientes'))
+    
+@app.route('/pacientes')
+def listar_pacientes():
+    # Busca todos os pacientes no banco
+    pacientes = Paciente.query.all()
+    return render_template('pacientes.html', pacientes=pacientes)
+
+@app.route('/paciente/<int:id_pessoa>')
+def detalhe_paciente(id_pessoa):
+    # Busca o paciente específico pelo ID; se não achar, retorna erro 404
+    paciente = Paciente.query.get_or_404(id_pessoa)
+    return render_template('paciente_detalhe.html', paciente=paciente)
 
 if __name__ == '__main__':
     with app.app_context():

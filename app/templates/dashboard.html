@@ -1,0 +1,45 @@
+<!-- app/templates/dashboard.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-4">
+    <h2><i class="bi bi-graph-up-arrow"></i> Dashboard Gerencial</h2>
+    <p class="text-muted">Visão geral do Hospital Dra. Yuska</p>
+</div>
+
+<!-- Cards Fictícios (Mocks) -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Pacientes Ativos</h5>
+                <h2 class="display-5">124</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Atendimentos Hoje</h5>
+                <h2 class="display-5">38</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Leitos Ocupados</h5>
+                <h2 class="display-5">85%</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger mb-3 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Plantões Ativos</h5>
+                <h2 class="display-5">12</h2>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

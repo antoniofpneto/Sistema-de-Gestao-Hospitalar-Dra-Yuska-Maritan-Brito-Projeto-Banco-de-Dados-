@@ -1,0 +1,45 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Hospital Dra. Yuska</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px;}
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left;}
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Gestão Hospitalar - Pacientes</h1>
+    
+    <h3>Cadastrar Novo Paciente</h3>
+    <form action="/cadastrar" method="POST">
+        <input type="text" name="nome" placeholder="Nome Completo" required>
+        <input type="text" name="cpf" placeholder="CPF" required>
+        <input type="text" name="telefone" placeholder="Telefone" required>
+        <input type="date" name="data_nascimento" required>
+        <button type="submit">Salvar</button>
+    </form>
+
+    <h3>Lista de Pacientes</h3>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>Alergias</th>
+        </tr>
+        <!-- O Jinja2 permite fazer loops do Python no HTML -->
+        {% for paciente in pacientes %}
+        <tr>
+            <td>{{ paciente.id_pessoa }}</td>
+            <td>{{ paciente.pessoa.nome }}</td>
+            <td>{{ paciente.pessoa.cpf }}</td>
+            <td>{{ paciente.alergias or 'Nenhuma' }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

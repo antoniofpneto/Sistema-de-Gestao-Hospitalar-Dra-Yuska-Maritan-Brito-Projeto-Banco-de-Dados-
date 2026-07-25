@@ -33,10 +33,11 @@ def index():
 def cadastrar_paciente():
     nome = request.form.get('nome')
     cpf = request.form.get('cpf')
+    telefone = request.form.get('telefone')
     data_nascimento = request.form.get('data_nascimento')
     
     # Criando os objetos Python (o SQLAlchemy fará o INSERT)
-    nova_pessoa = Pessoa(nome=nome, cpf=cpf, data_nascimento=data_nascimento)
+    nova_pessoa = Pessoa(nome=nome, cpf=cpf, data_nascimento=data_nascimento, telefone=telefone)
     db.session.add(nova_pessoa)
     db.session.commit() # Salvando a pessoa primeiro para gerar o id_pessoa
     

@@ -191,5 +191,18 @@ CREATE TABLE HISTORICO_PAPEL (
     CONSTRAINT chk_datas_historico CHECK (data_fim IS NULL OR data_fim >= data_inicio)
 );
 
-
-
+-- Criação da tabela para entidade AUDITORIA_ATENDIMENTO
+CREATE TABLE AUDITORIA_ATENDIMENTO (
+    -- Atributos:
+    id_auditoria SERIAL PRIMARY KEY,
+    id_atendimento INT NOT NULL,
+    data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usuario VARCHAR(50) NOT NULL,
+    operacao VARCHAR(20) NOT NULL, -- Inserção, atualização ou exclusão
+    dados_antigos json,
+    dados_novos json,
+    -- Restrições:
+    CONSTRAINT fk_auditoria_atendimento FOREIGN KEY (id_atendimento) REFERENCES ATENDIMENTO(id_atendimento)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT chk_operacao CHECK (operacao IN ('Insercao', 'Atualizacao', 'Exclusao'))
+);

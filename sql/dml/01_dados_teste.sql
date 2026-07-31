@@ -142,9 +142,9 @@ INSERT INTO PROCEDIMENTO_REALIZADO (id_atendimento, id_procedimento, quantidade,
 (10, 1, 1, 18, '2026-06-05 16:00:00', NULL,                                        TRUE);
 
 INSERT INTO AUDITORIA_ATENDIMENTO (id_atendimento, operacao, usuario, dados_antigos, dados_novos) VALUES
-(1, 'INSERT', 'admin', jsonb_build_object('status', 'novo'), jsonb_build_object('status', 'cadastrado')),
-(2, 'INSERT', 'admin', jsonb_build_object('status', 'novo'), jsonb_build_object('status', 'cadastrado')),
-(3, 'UPDATE', 'admin', jsonb_build_object('duracao_minutos', 40), jsonb_build_object('duracao_minutos', 45));
+(1, 'Insercao', 'admin', jsonb_build_object('status', 'novo'), jsonb_build_object('status', 'cadastrado')),
+(2, 'Insercao', 'admin', jsonb_build_object('status', 'novo'), jsonb_build_object('status', 'cadastrado')),
+(3, 'Atualizacao', 'admin', jsonb_build_object('duracao_minutos', 40), jsonb_build_object('duracao_minutos', 45));
 
 INSERT INTO ESCALA (id_unidade, id_residente, id_preceptor, dia_semana, turno) 
 VALUES

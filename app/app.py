@@ -24,6 +24,26 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
+# app.py
+
+# ... (criação do app)
+
+# Função que formata o CPF
+def format_cpf(cpf):
+    if cpf and len(cpf) == 11:
+        return f"{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}"
+    return cpf
+
+# Função que formata o Telefone
+def format_telefone(telefone):
+    if telefone and len(telefone) == 11:
+        return f"({telefone[:2]}) {telefone[2:7]}-{telefone[7:]}"
+    return telefone
+
+# registra as funções como filtros no Jinja2
+app.jinja_env.filters['cpf'] = format_cpf
+app.jinja_env.filters['telefone'] = format_telefone
+
 @app.route('/')
 def dashboard():
     # Buscamos o primeiro registro de cada entidade para montar os links da apresentação dinamicamente
@@ -130,11 +150,6 @@ def detalhe_paciente(id_pessoa):
     paciente = Paciente.query.get_or_404(id_pessoa)
     return render_template('paciente_detalhe.html', paciente=paciente)
 
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all() # Cria as tabelas caso não existam (útil para testes, mas no seu caso o script SQL já fez isso)
-    app.run(debug=True)
-
 
 
 # A partir daqui foram implementadas as rotas para as consultas estabelecidas na Etapa I
@@ -165,6 +180,12 @@ def inserir_atendimento():
     db.session.add(novo_atendimento)
     db.session.commit()
     return redirect(url_for('listar_pacientes')) # Ou para a rota de atendimentos
+
+@app.route('/atendimentos')
+def listar_atendimentos():
+    # Busca todos os atendimentos ordenados do mais recente para o mais antigo
+    atendimentos = Atendimento.query.order_by(Atendimento.data_hora.desc()).all()
+    return render_template('atendimentos.html', atendimentos=atendimentos)
 
 
 # Consulta 02 - Listar todos os atendimentos de um paciente específico
@@ -230,3 +251,10 @@ def media_duracao_residente(id_residente):
     # Arredondando para 2 casas decimais, ou 0 se não houver atendimentos
     media_formatada = round(media, 2) if media else 0
     return f"O tempo médio de atendimento deste residente é de {media_formatada} minutos."
+
+
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all() # Cria as tabelas caso não existam (útil para testes, mas no seu caso o script SQL já fez isso)
+    app.run(debug=True)

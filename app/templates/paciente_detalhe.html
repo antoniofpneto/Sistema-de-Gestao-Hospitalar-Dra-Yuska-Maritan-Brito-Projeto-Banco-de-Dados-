@@ -1,4 +1,3 @@
-<!-- app/templates/paciente_detalhe.html -->
 {% extends 'base.html' %}
 
 {% block content %}
@@ -9,49 +8,97 @@
 <div class="row">
     <!-- Coluna de Informações Pessoais -->
     <div class="col-md-4">
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm mb-4 border-primary">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0">Dados Pessoais</h5>
             </div>
             <div class="card-body">
                 <p><strong>Nome:</strong> {{ paciente.pessoa.nome }}</p>
-                <p><strong>CPF:</strong> {{ paciente.pessoa.cpf }}</p>
+                <p><strong>CPF:</strong> {{ paciente.pessoa.cpf | cpf }}</p>
                 <p><strong>Data de Nasc.:</strong> {{ paciente.pessoa.data_nascimento.strftime('%d/%m/%Y') }}</p>
-                <p><strong>Telefone:</strong> {{ paciente.pessoa.telefone }}</p>
-                <p><strong>Flamenguista:</strong> {{ 'Sim' if paciente.pessoa.is_flamengo else 'Não' }}</p>
+                <p><strong>Telefone:</strong> {{ paciente.pessoa.telefone | telefone }}</p>
+                <p><strong>Flamenguista:</strong> <span class="badge {{ 'bg-success' if paciente.pessoa.is_flamengo else 'bg-danger' }}">{{ 'Sim' if paciente.pessoa.is_flamengo else 'Não' }}</span></p>
             </div>
         </div>
     </div>
 
-    <!-- Coluna de Informações Clínicas -->
+    <!-- Coluna de Informações Clínicas e Histórico -->
     <div class="col-md-8">
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-danger text-white">
+        <!-- Card do Prontuário -->
+        <div class="card shadow-sm mb-4 border-danger">
+            <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Prontuário Médico</h5>
+                <!-- Etiqueta Acadêmica -->
+                <span class="badge bg-light text-dark" title="Requisito 4: Operação 4">ORM: Update</span>
             </div>
             <div class="card-body">
-                <div class="row">
+                <div class="row align-items-center">
                     <div class="col-sm-6">
-                        <p><strong>Convênio:</strong> {{ paciente.num_convenio or 'SUS' }}</p>
+                        <p class="mb-0"><strong>Convênio:</strong> {{ paciente.num_convenio or 'SUS' }}</p>
                     </div>
-                    <div class="col-sm-6">
-                        <p><strong>Grupo Sanguíneo:</strong> <span class="badge bg-danger fs-6">{{ paciente.grupo_sanguineo or 'Não informado' }}</span></p>
+                    <div class="col-sm-6 text-end">
+                        <!-- Botão que aciona a Operação 4 do Requisito 4 -->
+                        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalConvenio">
+                            <i class="bi bi-pencil"></i> Atualizar Convênio
+                        </button>
                     </div>
                 </div>
-                
                 <hr>
-                
-                <h6>Alergias Registradas</h6>
-                {% if paciente.alergias %}
-                    <ul class="list-group list-group-flush">
-                        {% for alergia in paciente.alergias %}
-                            <li class="list-group-item text-danger"><i class="bi bi-exclamation-triangle-fill"></i> {{ alergia.alergia }}</li>
+                <p class="mb-1"><strong>Grupo Sanguíneo:</strong> <span class="badge bg-danger fs-6">{{ paciente.grupo_sanguineo or 'Não informado' }}</span></p>
+            </div>
+        </div>
+
+        <!-- Card de Histórico de Atendimentos -->
+        <div class="card shadow-sm mb-4 border-success">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Histórico de Atendimentos</h5>
+                <!-- Etiqueta Acadêmica -->
+                <span class="badge bg-light text-dark" title="Requisito 4: Operação 2">ORM: Query Relacional (1:N)</span>
+            </div>
+            <div class="card-body">
+                {% if paciente.atendimentos %}
+                    <div class="list-group list-group-flush">
+                        {% for atendimento in paciente.atendimentos|sort(attribute='data_hora', reverse=True) %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1 text-success"><i class="bi bi-calendar-check"></i> {{ atendimento.data_hora.strftime('%d/%m/%Y às %H:%M') }}</h6>
+                                <small>Duração: {{ atendimento.duracao_minutos }} min</small>
+                            </div>
+                            <p class="mb-1 text-muted small">
+                                <strong>Residente:</strong> {{ atendimento.residente.pessoa.nome }} | 
+                                <strong>Preceptor:</strong> {{ atendimento.preceptor.pessoa.nome }}
+                            </p>
+                        </div>
                         {% endfor %}
-                    </ul>
+                    </div>
                 {% else %}
-                    <p class="text-muted">Nenhuma alergia registrada.</p>
+                    <p class="text-muted text-center my-3">Nenhum atendimento registrado para este paciente.</p>
                 {% endif %}
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Atualizar Convênio (Operação 4) -->
+<div class="modal fade" id="modalConvenio" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Atualizar Convênio</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/paciente/atualizar_convenio/{{ paciente.id_pessoa }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Novo Número do Convênio (Deixe em branco para SUS)</label>
+                        <input type="text" class="form-control" name="num_convenio" value="{{ paciente.num_convenio or '' }}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Salvar Alteração</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

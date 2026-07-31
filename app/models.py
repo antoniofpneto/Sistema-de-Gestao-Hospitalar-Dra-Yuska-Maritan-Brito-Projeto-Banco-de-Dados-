@@ -217,3 +217,20 @@ class Escala(db.Model):
         db.CheckConstraint("turno IN ('Manha', 'Tarde', 'Noite')", name = 'chk_turno'),
         db.UniqueConstraint('id_unidade', 'dia_semana', 'turno', 'id_residente', name='uq_escala_residente'),
     )
+
+# AUDITORIA_ATENDIMENTO
+class AuditoriaAtendimento(db.Model):
+    __tablename__ = 'auditoria_atendimento'
+    
+    id_auditoria = db.Column(db.Integer, primary_key=True)
+    id_atendimento = db.Column(db.Integer, db.ForeignKey('atendimento.id_atendimento', onupdate='CASCADE'), nullable=False)
+    data_hora = db.Column(db.TIMESTAMP, nullable=False, default=db.func.current_timestamp())
+    usuario = db.Column(db.String(50), nullable=False)
+    operacao = db.Column(db.String(20), nullable=False)  # Inserção, atualização ou exclusão
+    dados_antigos = db.Column(db.JSON)
+    dados_novos = db.Column(db.JSON)
+
+    __table_args__ = (
+        db.ForeignKeyConstraint(['id_atendimento'], ['atendimento.id_atendimento'], onupdate='CASCADE', ondelete='CASCADE'),
+        db.CheckConstraint("operacao IN ('Insercao', 'Atualizacao', 'Exclusao')", name='chk_operacao'),
+    )

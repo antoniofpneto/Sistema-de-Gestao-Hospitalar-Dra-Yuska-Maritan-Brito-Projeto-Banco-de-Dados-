@@ -7,7 +7,7 @@ from app import app, db
 # Ajuste os caminhos relativos se a sua pasta sql estiver em outro nível
 SCRIPTS_SQL = [
     "../sql/ddl/01_create_tables.sql",
-    "../sql/ddl/02_store_procedures.sql",
+    "../sql/ddl/02_stored_procedures.sql",
     "../sql/ddl/03_triggers.sql",
     "../sql/ddl/04_views.sql",
     "../sql/dml/01_dados_teste.sql"

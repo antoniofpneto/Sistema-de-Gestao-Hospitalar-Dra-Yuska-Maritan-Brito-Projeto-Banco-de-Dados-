@@ -59,8 +59,8 @@ class Profissional(db.Model):
     data_admissao = db.Column(db.Date, nullable=False)
 
     # Relacionamentos
-    preceptor = db.relationship('Preceptor', backref='profissional_rel', uselist=False)
-    residente = db.relationship('Residente', backref='profissional_rel', uselist=False)
+    preceptor = db.relationship('Preceptor', backref='profissional', uselist=False)
+    residente = db.relationship('Residente', backref='profissional', uselist=False)
     especialidades = db.relationship('EspecialidadeProfissional', backref='profissional_rel', cascade="all, delete-orphan")
     historico = db.relationship('HistoricoPapel', backref='profissional_rel')
 
@@ -101,6 +101,10 @@ class Preceptor(db.Model):
         db.CheckConstraint("titulacao IN ('Especialista', 'Mestre', 'Doutor', 'Livre-Docente')", name='chk_titulacao'),
     )
 
+    @property
+    def pessoa(self):
+        return self.profissional.pessoa
+
 
 class Residente(db.Model):
     __tablename__ = 'residente'
@@ -115,6 +119,10 @@ class Residente(db.Model):
     __table_args__ = (
         db.CheckConstraint("ano_residencia IN ('R1', 'R2', 'R3')", name = 'chk_ano_residencia'),
     )
+
+    @property
+    def pessoa(self):
+        return self.profissional.pessoa
 
 
 

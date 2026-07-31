@@ -1,6 +1,6 @@
 # models.py
 from flask_sqlalchemy import SQLAlchemy
-from datetime import date
+from datetime import date, datetime
 
 db = SQLAlchemy()
 
@@ -142,6 +142,7 @@ class Atendimento(db.Model):
     id_paciente = db.Column(db.Integer, db.ForeignKey('paciente.id_pessoa', onupdate='CASCADE'), nullable=False)
     id_residente = db.Column(db.Integer, db.ForeignKey('residente.id_profissional', onupdate='CASCADE'), nullable=False)
     id_preceptor = db.Column(db.Integer, db.ForeignKey('preceptor.id_profissional', onupdate='CASCADE'), nullable=False)
+    id_unidade = db.Column(db.Integer, db.ForeignKey('unidade.id_unidade', onupdate='CASCADE'), nullable=False)
     data_hora = db.Column(db.DateTime, nullable=False)
     duracao_minutos = db.Column(db.Integer, nullable=False)
 
@@ -150,6 +151,23 @@ class Atendimento(db.Model):
     __table_args__ = (
         db.CheckConstraint("duracao_minutos > 0", name = 'chk_duracao'),
     )
+
+# AUDITORIA DE ATENDIMENTOS
+class AuditoriaAtendimento(db.Model):
+    __tablename__ = 'auditoria_atendimento'
+    
+    id_auditoria = db.Column(db.Integer, primary_key=True)
+    id_atendimento = db.Column(db.Integer, db.ForeignKey('atendimento.id_atendimento', onupdate='CASCADE'), nullable=False)
+    data_hora = db.Column(db.TIMESTAMP, nullable=False, default=db.func.current_timestamp())
+    usuario = db.Column(db.String(50), nullable=False)
+    operacao = db.Column(db.String(20), nullable=False)  # Inserção, atualização ou exclusão
+    dados_antigos = db.Column(db.JSON)
+    dados_novos = db.Column(db.JSON)
+
+    __table_args__ = (
+        db.CheckConstraint("operacao IN ('Insercao', 'Atualizacao', 'Exclusao')", name='chk_operacao'),
+    )
+
 
 class Internacao(db.Model):
     __tablename__ = 'internacao'
@@ -192,6 +210,7 @@ class ProcedimentoRealizado(db.Model):
     
     quantidade = db.Column(db.Integer, nullable=False, default=1)
     tempo_real_minutos = db.Column(db.Integer, nullable=False)
+    data_hora_inicio = db.Column(db.DateTime)
     observacao = db.Column(db.Text)
     faturado = db.Column(db.Boolean, nullable=False, default=False)
 
@@ -218,19 +237,4 @@ class Escala(db.Model):
         db.UniqueConstraint('id_unidade', 'dia_semana', 'turno', 'id_residente', name='uq_escala_residente'),
     )
 
-# AUDITORIA_ATENDIMENTO
-class AuditoriaAtendimento(db.Model):
-    __tablename__ = 'auditoria_atendimento'
-    
-    id_auditoria = db.Column(db.Integer, primary_key=True)
-    id_atendimento = db.Column(db.Integer, db.ForeignKey('atendimento.id_atendimento', onupdate='CASCADE'), nullable=False)
-    data_hora = db.Column(db.TIMESTAMP, nullable=False, default=db.func.current_timestamp())
-    usuario = db.Column(db.String(50), nullable=False)
-    operacao = db.Column(db.String(20), nullable=False)  # Inserção, atualização ou exclusão
-    dados_antigos = db.Column(db.JSON)
-    dados_novos = db.Column(db.JSON)
 
-    __table_args__ = (
-        db.ForeignKeyConstraint(['id_atendimento'], ['atendimento.id_atendimento'], onupdate='CASCADE', ondelete='CASCADE'),
-        db.CheckConstraint("operacao IN ('Insercao', 'Atualizacao', 'Exclusao')", name='chk_operacao'),
-    )

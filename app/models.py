@@ -59,10 +59,10 @@ class Profissional(db.Model):
     data_admissao = db.Column(db.Date, nullable=False)
 
     # Relacionamentos
-    preceptor = db.relationship('Preceptor', backref='profissional', uselist=False)
-    residente = db.relationship('Residente', backref='profissional', uselist=False)
+    preceptor = db.relationship('Preceptor', backref='profissional', uselist=False, cascade="all, delete-orphan")
+    residente = db.relationship('Residente', backref='profissional', uselist=False, cascade="all, delete-orphan")
     especialidades = db.relationship('EspecialidadeProfissional', backref='profissional_rel', cascade="all, delete-orphan")
-    historico = db.relationship('HistoricoPapel', backref='profissional_rel')
+    historico = db.relationship('HistoricoPapel', backref='profissional_rel', cascade="all, delete-orphan")
 
 
 class EspecialidadeProfissional(db.Model):
@@ -155,7 +155,8 @@ class Atendimento(db.Model):
     duracao_minutos = db.Column(db.Integer, nullable=False)
 
     # Relações de identidades para o Python
-    procedimentos_realizados = db.relationship('ProcedimentoRealizado', backref='atendimento_rel')
+    procedimentos_realizados = db.relationship('ProcedimentoRealizado', backref='atendimento_rel', cascade="all, delete-orphan")
+    auditorias = db.relationship('AuditoriaAtendimento', backref='atendimento', cascade="all, delete-orphan")
 
     __table_args__ = (
         db.CheckConstraint("duracao_minutos > 0", name = 'chk_duracao'),
@@ -172,9 +173,6 @@ class AuditoriaAtendimento(db.Model):
     operacao = db.Column(db.String(20), nullable=False)  # Inserção, atualização ou exclusão
     dados_antigos = db.Column(db.JSON)
     dados_novos = db.Column(db.JSON)
-
-    # Relações de identidades para o Python
-    atendimento = db.relationship('Atendimento', backref='auditorias')
 
     __table_args__ = (
         db.CheckConstraint("operacao IN ('Insercao', 'Atualizacao', 'Exclusao')", name='chk_operacao'),

@@ -143,4 +143,103 @@ BEGIN
 END;
 $$;
 
+-- Função do trigger de verificação de sobreposição de escala
+CREATE OR REPLACE FUNCTION trg_check_sobreposicao_escala_fn()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM ESCALA
+        WHERE id_residente = NEW.id_residente
+          AND dia_semana = NEW.dia_semana
+          AND turno = NEW.turno
+          AND id_unidade <> NEW.id_unidade
+          AND (TG_OP = 'INSERT' OR id_escala <> NEW.id_escala)
+    ) THEN
+        RAISE EXCEPTION 'Residente % já está escalado no mesmo dia/turno em outra unidade', NEW.id_residente;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+-- Função do trigger de auditoria de atendimento
+CREATE OR REPLACE FUNCTION trg_audita_atendimento_fn()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_usuario VARCHAR(50) := current_user;
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO AUDITORIA_ATENDIMENTO (
+            id_atendimento,
+            operacao,
+            usuario,
+            dados_antigos,
+            dados_novos
+        ) VALUES (
+            NEW.id_atendimento,
+            'Insercao',
+            v_usuario,
+            NULL,
+            row_to_json(NEW)::jsonb
+        );
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO AUDITORIA_ATENDIMENTO (
+            id_atendimento,
+            operacao,
+            usuario,
+            dados_antigos,
+            dados_novos
+        ) VALUES (
+            NEW.id_atendimento,
+            'Atualizacao',
+            v_usuario,
+            row_to_json(OLD)::jsonb,
+            row_to_json(NEW)::jsonb
+        );
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO AUDITORIA_ATENDIMENTO (
+            id_atendimento,
+            operacao,
+            usuario,
+            dados_antigos,
+            dados_novos
+        ) VALUES (
+            OLD.id_atendimento,
+            'Exclusao',
+            v_usuario,
+            row_to_json(OLD)::jsonb,
+            NULL
+        );
+    END IF;
+
+    RETURN NULL;
+END;
+$$;
+
+-- Função do trigger de atualização de média de procedimentos
+CREATE OR REPLACE FUNCTION trg_atualiza_media_procedimentos_fn()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_media INT;
+BEGIN
+    SELECT ROUND(AVG(tempo_real_minutos)::numeric)::INT
+    INTO v_media
+    FROM PROCEDIMENTO_REALIZADO
+    WHERE id_procedimento = NEW.id_procedimento;
+
+    UPDATE PROCEDIMENTO
+    SET tempo_medio_minutos = v_media
+    WHERE id_procedimento = NEW.id_procedimento;
+
+    RETURN NULL;
+END;
+$$;
+
 

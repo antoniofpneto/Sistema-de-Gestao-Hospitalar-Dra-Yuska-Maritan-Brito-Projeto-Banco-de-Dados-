@@ -95,7 +95,13 @@ DB_PORT=5432
 DB_NAME=gestao_hospitalar
 ```
 
-### 4. Iniciando o Servidor
+### 4. Iniciando os arquivos SQL, caso não tenham sido ativados:
+1. `psql -U postgres -d gestao_hospitalar -f sql/ddl/01_create_tables.sql`
+2. `psql -U postgres -d gestao_hospitalar -f sql/ddl/02_stored_procedures.sql`
+3. `psql -U postgres -d gestao_hospitalar -f sql/ddl/03_triggers.sql`
+4. `psql -U postgres -d gestao_hospitalar -f sql/dml/01_dados_teste.sql`
+
+### 5. Iniciando o Servidor
 Com tudo configurado, basta ligar o servidor web:
 1. Navegue até a pasta da aplicação: `cd app`
 2. Execute o sistema: `python app.py`

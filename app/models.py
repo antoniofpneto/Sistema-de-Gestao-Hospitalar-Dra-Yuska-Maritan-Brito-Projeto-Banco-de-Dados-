@@ -147,10 +147,6 @@ class Atendimento(db.Model):
     duracao_minutos = db.Column(db.Integer, nullable=False)
 
     # Relações de identidades para o Python
-    paciente = db.relationship('Paciente', backref='atendimentos')
-    residente = db.relationship('Residente', backref='atendimentos_realizados')
-    preceptor = db.relationship('Preceptor', backref='atendimentos_supervisionados')
-    unidade = db.relationship('Unidade', backref='atendimentos_unidade')
     procedimentos_realizados = db.relationship('ProcedimentoRealizado', backref='atendimento_rel')
 
     __table_args__ = (

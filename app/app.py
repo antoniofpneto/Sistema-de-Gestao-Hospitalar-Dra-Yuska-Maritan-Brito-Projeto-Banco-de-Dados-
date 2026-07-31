@@ -26,7 +26,17 @@ db.init_app(app)
 
 @app.route('/')
 def dashboard():
-    return render_template('dashboard.html')
+    # Buscamos o primeiro registro de cada entidade para montar os links da apresentação dinamicamente
+    primeiro_paciente = Paciente.query.first()
+    primeiro_residente = Residente.query.first()
+    primeiro_atendimento = Atendimento.query.first()
+    
+    # Prevenção: se o banco estiver vazio, não quebra a interface
+    id_pac = primeiro_paciente.id_pessoa if primeiro_paciente else 0
+    id_res = primeiro_residente.id_profissional if primeiro_residente else 0
+    id_atend = primeiro_atendimento.id_atendimento if primeiro_atendimento else 0
+    
+    return render_template('dashboard.html', id_pac=id_pac, id_res=id_res, id_atend=id_atend)
 
 
 @app.route('/paciente/deletar/<int:id>', methods=['POST'])

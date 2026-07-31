@@ -3,6 +3,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for
 from models import db, Pessoa, Paciente
 from dotenv import load_dotenv
+from sqlalchemy import func
 
 # carrregar as variáveis de ambiente para a memória
 load_dotenv()
@@ -123,3 +124,33 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all() # Cria as tabelas caso não existam (útil para testes, mas no seu caso o script SQL já fez isso)
     app.run(debug=True)
+
+
+
+# A partir daqui foram implementadas as rotas para as consultas estabelecidas na Etapa I
+
+@app.route('/atendimento/novo', methods=['POST'])
+def inserir_atendimento():
+    id_paciente = request.form.get('id_paciente')
+    id_residente = request.form.get('id_residente')
+    id_preceptor = request.form.get('id_preceptor')
+    
+    # 1. Verifica se paciente, residente e preceptor existem usando o ORM
+    paciente = Paciente.query.get(id_paciente)
+    residente = Residente.query.get(id_residente)
+    preceptor = Preceptor.query.get(id_preceptor)
+    
+    if not (paciente and residente and preceptor):
+        return "Erro: Paciente, Residente ou Preceptor não encontrados no sistema.", 404
+        
+    # 2. Insere o atendimento
+    novo_atendimento = Atendimento(
+        id_paciente=id_paciente,
+        id_residente=id_residente,
+        id_preceptor=id_preceptor,
+        data_hora=request.form.get('data_hora'),
+        duracao_minutos=request.form.get('duracao_minutos')
+    )
+    db.session.add(novo_atendimento)
+    db.session.commit()
+    return redirect(url_for('listar_pacientes')) # Ou para a rota de atendimentos

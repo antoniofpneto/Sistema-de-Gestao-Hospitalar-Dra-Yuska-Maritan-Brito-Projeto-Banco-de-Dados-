@@ -1,10 +1,10 @@
 # app.py
 import os
 from flask import Flask, render_template, request, redirect, url_for
-from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade, Procedimento
+from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade, Procedimento, Profissional, Escala, EspecialidadeProfissional
 import consultas_avancadas as ca
 from dotenv import load_dotenv, find_dotenv
-from sqlalchemy import func, text
+from sqlalchemy import func, text, or_
 from datetime import date, datetime
 
 # carrregar as variáveis de ambiente para a memória
@@ -377,6 +377,45 @@ def listar_profissionais():
     return render_template('profissionais.html', 
                            preceptores=preceptores, 
                            residentes_stats=residentes_stats)
+
+@app.route('/profissional/<int:id_prof>')
+def profissional_detalhe(id_prof):
+    # Busca o profissional base
+    profissional = Profissional.query.get_or_404(id_prof)
+    
+    # Descobre se é Residente ou Preceptor
+    residente = Residente.query.filter_by(id_profissional=id_prof).first()
+    preceptor = Preceptor.query.filter_by(id_profissional=id_prof).first()
+    
+    # Define as variáveis dinâmicas para o Jinja2
+    if residente:
+        tipo_profissional = "Residente"
+        # Ano de residência para residentes
+        dado_especifico = residente.ano_residencia 
+    elif preceptor:
+        tipo_profissional = "Preceptor"
+        # Titulação para preceptores
+        dado_especifico = preceptor.titulacao 
+    else:
+        tipo_profissional = "Indefinido"
+        dado_especifico = "N/A"
+
+    # Busca as especialidades (Assumindo que você tem um model EspecialidadeProfissional)
+    especialidades = EspecialidadeProfissional.query.filter_by(id_profissional=id_prof).all()
+
+    # Busca a escala onde ele aparece como residente OU como preceptor
+    escalas = Escala.query.filter(
+        or_(Escala.id_residente == id_prof, Escala.id_preceptor == id_prof)
+    ).all()
+
+    return render_template(
+        'profissional_detalhe.html',
+        profissional=profissional,
+        tipo_profissional=tipo_profissional,
+        dado_especifico=dado_especifico,
+        especialidades=especialidades,
+        escalas=escalas
+    )
 
 @app.route('/consultas-avancadas')
 def consultas_avancadas():

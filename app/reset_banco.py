@@ -10,7 +10,8 @@ SCRIPTS_SQL = [
     "../sql/ddl/02_stored_procedures.sql",
     "../sql/ddl/03_triggers.sql",
     "../sql/ddl/04_views.sql",
-    "../sql/dml/01_dados_teste.sql"
+    "../sql/dml/01_dados_teste.sql",
+    "../sql/dml/02_dados_teste_complementares.sql"
 ]
 
 def resetar_banco():

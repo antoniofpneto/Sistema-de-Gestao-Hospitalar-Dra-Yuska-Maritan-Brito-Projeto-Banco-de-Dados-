@@ -156,12 +156,31 @@ INSERT INTO AUDITORIA_ATENDIMENTO (id_atendimento, operacao, usuario, dados_anti
 (2, 'Insercao', 'admin', jsonb_build_object('status', 'novo'), jsonb_build_object('status', 'cadastrado')),
 (3, 'Atualizacao', 'admin', jsonb_build_object('duracao_minutos', 40), jsonb_build_object('duracao_minutos', 45));
 
-INSERT INTO ESCALA (id_unidade, id_residente, id_preceptor, dia_semana, turno) 
-VALUES
-((SELECT id_unidade FROM UNIDADE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 'Segunda', 'Manha'),
-((SELECT id_unidade FROM UNIDADE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 'Quarta', 'Tarde'),
-((SELECT id_unidade FROM UNIDADE LIMIT 1), (SELECT id_profissional FROM RESIDENTE OFFSET 1 LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 'Sexta', 'Noite');
-COMMIT;
+INSERT INTO ESCALA (id_unidade, id_residente, id_preceptor, dia_semana, turno) VALUES
+-- Residente 6 (Marcos) com Preceptor 11 (Patricia)
+(1, 6, 11, 'Segunda', 'Manha'),
+(1, 6, 11, 'Quarta',  'Tarde'),
+(2, 6, 11, 'Sexta',   'Noite'),
+
+-- Residente 7 (Larissa) com Preceptor 12 (Eduardo)
+(2, 7, 12, 'Terca',   'Manha'),
+(3, 7, 12, 'Quinta',  'Tarde'),
+(1, 7, 12, 'Sabado',  'Manha'),
+
+-- Residente 8 (Rafael) com Preceptor 13 (Simone)
+(3, 8, 13, 'Segunda', 'Tarde'),
+(1, 8, 13, 'Quarta',  'Manha'),
+(2, 8, 13, 'Domingo', 'Noite'),
+
+-- Residente 9 (Camila) com Preceptor 14 (Andre)
+(1, 9, 14, 'Terca',   'Tarde'),
+(2, 9, 14, 'Quinta',  'Noite'),
+(3, 9, 14, 'Sexta',   'Manha'),
+
+-- Residente 10 (Thiago) com Preceptor 15 (Beatriz)
+(2, 10, 15, 'Segunda', 'Noite'),
+(3, 10, 15, 'Quarta',  'Manha'),
+(1, 10, 15, 'Sexta',   'Tarde');
 
 -- Sincroniza as sequences das colunas SERIAL, já que os IDs
 -- foram inseridos manualmente (evita conflito em INSERTs futuros

@@ -24,7 +24,7 @@
                     </thead>
                     <tbody>
                         {% for pr in preceptores %}
-                        <tr>
+                        <tr onclick="window.location.href='/profissional/{{ pr.id_profissional }}'" style="cursor: pointer;">
                             <td class="ps-3">{{ pr.profissional.crm }}</td>
                             <td><strong>Dr(a). {{ pr.pessoa.nome }}</strong></td>
                             <td><span class="badge bg-dark">{{ pr.titulacao }}</span></td>
@@ -58,7 +58,7 @@
                     <tbody>
                         <!-- (Objeto Residente, Valor da Media) -->
                         {% for res, media in residentes_stats %}
-                        <tr>
+                        <tr onclick="window.location.href='/profissional/{{ res.id_profissional }}'" style="cursor: pointer;">
                             <td class="ps-3">{{ res.profissional.crm }}</td>
                             <td><strong>{{ res.pessoa.nome }}</strong></td>
                             <td><span class="badge bg-success">{{ res.ano_residencia }}</span></td>

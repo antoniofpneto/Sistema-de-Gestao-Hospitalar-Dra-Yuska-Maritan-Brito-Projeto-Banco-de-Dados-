@@ -1,7 +1,7 @@
 # app.py
 import os
 from flask import Flask, render_template, request, redirect, url_for
-from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado
+from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade
 from dotenv import load_dotenv, find_dotenv
 from sqlalchemy import func
 from datetime import date, datetime
@@ -167,35 +167,57 @@ def detalhe_paciente(id_pessoa):
 # Consulta 01 - Inserir novo atendimento
 @app.route('/atendimento/novo', methods=['POST'])
 def inserir_atendimento():
+    # Recebemos os IDs garantidos pelas tags <select> do HTML
     id_paciente = request.form.get('id_paciente')
     id_residente = request.form.get('id_residente')
     id_preceptor = request.form.get('id_preceptor')
+    id_unidade = request.form.get('id_unidade')
     
-    # Verifica se paciente, residente e preceptor existem usando o ORM
-    paciente = Paciente.query.get(id_paciente)
-    residente = Residente.query.get(id_residente)
-    preceptor = Preceptor.query.get(id_preceptor)
-    
-    if not (paciente and residente and preceptor):
-        return "Erro: Paciente, Residente ou Preceptor não encontrados no sistema.", 404
+    data_hora_str = request.form.get('data_hora')
+    duracao_minutos = request.form.get('duracao_minutos')
+
+    # Validação básica
+    if not (id_paciente and id_residente and id_preceptor and id_unidade and data_hora_str and duracao_minutos):
+        return "Erro: Preencha todos os campos.", 400
+
+    try:
+        data_hora = datetime.strptime(data_hora_str, '%Y-%m-%dT%H:%M')
         
-    # Insere o atendimento
-    novo_atendimento = Atendimento(
-        id_paciente=id_paciente,
-        id_residente=id_residente,
-        id_preceptor=id_preceptor,
-        data_hora=request.form.get('data_hora'),
-        duracao_minutos=request.form.get('duracao_minutos')
-    )
-    db.session.add(novo_atendimento)
-    db.session.commit()
-    return redirect(url_for('listar_pacientes')) # Ou para a rota de atendimentos
+        # Criação do objeto usando o ORM
+        novo_atend = Atendimento(
+            id_paciente=id_paciente,
+            id_residente=id_residente,
+            id_preceptor=id_preceptor,
+            id_unidade=id_unidade,
+            data_hora=data_hora,
+            duracao_minutos=duracao_minutos
+        )
+        
+        db.session.add(novo_atend)
+        db.session.commit()
+        return redirect(url_for('listar_atendimentos'))
+        
+    except Exception as e:
+        db.session.rollback()
+        return f"Erro de validação do ORM ou Banco de Dados: {str(e)}", 400
 
 @app.route('/atendimentos')
 def listar_atendimentos():
     # Busca todos os atendimentos ordenados do mais recente para o mais antigo
     atendimentos = Atendimento.query.order_by(Atendimento.data_hora.desc()).all()
-    return render_template('atendimentos.html', atendimentos=atendimentos)
+    
+    # Busca os dados para popular os selects do Modal
+    pacientes = Paciente.query.all()
+    residentes = Residente.query.all()
+    preceptores = Preceptor.query.all()
+    unidades = Unidade.query.all()
+    
+    return render_template('atendimentos.html', 
+                           atendimentos=atendimentos,
+                           pacientes=pacientes,
+                           residentes=residentes,
+                           preceptores=preceptores,
+                           unidades=unidades)
 
 
 # Consulta 02 - Listar todos os atendimentos de um paciente específico

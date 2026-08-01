@@ -14,41 +14,44 @@
         <h5 class="mb-0">Registros do Dia</h5>
         <span class="badge bg-light text-dark" title="Requisito 4: Operações 1 e 3">ORM: Insert & Joins</span>
     </div>
-    <div class="card-body">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>ID</th>
-                    <th>Data/Hora</th>
-                    <th>Paciente</th>
-                    <th>Residente</th>
-                    <th>Preceptor</th>
-                    <th>Duração</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for a in atendimentos %}
-                <tr>
-                    <td><strong>#{{ a.id_atendimento }}</strong></td>
-                    <td>{{ a.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
-                    <td>{{ a.paciente.pessoa.nome }}</td>
-                    <td>{{ a.residente.pessoa.nome }}</td>
-                    <td>{{ a.preceptor.pessoa.nome }}</td>
-                    <td>{{ a.duracao_minutos }} min</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="6" class="text-center text-muted py-4">Nenhum atendimento registrado no sistema.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Data/Hora</th>
+                        <th>Paciente</th>
+                        <th>Residente</th>
+                        <th>Preceptor</th>
+                        <th>Unidade</th>
+                        <th>Duração</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in atendimentos %}
+                    <tr>
+                        <td>{{ a.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>{{ a.paciente.pessoa.nome }}</td>
+                        <td>{{ a.residente.pessoa.nome }}</td>
+                        <td>{{ a.preceptor.pessoa.nome }}</td>
+                        <!-- Busca o nome da unidade pelo relacionamento -->
+                        <td><span class="badge bg-secondary">{{ a.unidade.nome }}</span></td>
+                        <td>{{ a.duracao_minutos }} min</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">Nenhum atendimento registrado no sistema.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
-<!-- Modal de Novo Atendimento (Operação 1) -->
+<!-- Modal de Novo Atendimento -->
 <div class="modal fade" id="modalNovoAtendimento" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">Registrar Novo Atendimento</h5>
@@ -56,40 +59,66 @@
             </div>
             <form action="/atendimento/novo" method="POST">
                 <div class="modal-body">
-                    <div class="alert alert-info py-2 small">
-                        <i class="bi bi-info-circle"></i> Digite IDs válidos para testar a validação do ORM.
-                    </div>
                     
+                    <h6 class="text-muted border-bottom pb-2 mb-3">Envolvidos</h6>
                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label>ID Paciente</label>
-                            <!-- Use o ID 7 que você já tem cadastrado -->
-                            <input type="number" class="form-control" name="id_paciente" required>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label>ID Residente</label>
-                            <input type="number" class="form-control" name="id_residente" required>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label>ID Preceptor</label>
-                            <input type="number" class="form-control" name="id_preceptor" required>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Paciente</label>
+                            <select class="form-select" name="id_paciente" required>
+                                <option value="" disabled selected>Selecione o paciente...</option>
+                                {% for p in pacientes %}
+                                    <option value="{{ p.id_pessoa }}">{{ p.pessoa.nome }} (CPF: {{ p.pessoa.cpf }})</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-8 mb-3">
-                            <label>Data e Hora</label>
-                            <input type="datetime-local" class="form-control" name="data_hora" required>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Residente (Executor)</label>
+                            <select class="form-select" name="id_residente" required>
+                                <option value="" disabled selected>Selecione...</option>
+                                {% for r in residentes %}
+                                    <option value="{{ r.id_profissional }}">{{ r.pessoa.nome }} ({{ r.ano_residencia }})</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label>Duração (min)</label>
-                            <input type="number" class="form-control" name="duracao_minutos" required>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Preceptor (Supervisor)</label>
+                            <select class="form-select" name="id_preceptor" required>
+                                <option value="" disabled selected>Selecione...</option>
+                                {% for pr in preceptores %}
+                                    <option value="{{ pr.id_profissional }}">Dr(a). {{ pr.pessoa.nome }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
+
+                    <h6 class="text-muted border-bottom pb-2 mb-3 mt-2">Dados do Atendimento</h6>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Unidade</label>
+                            <select class="form-select" name="id_unidade" required>
+                                <option value="" disabled selected>Selecione...</option>
+                                {% for u in unidades %}
+                                    <option value="{{ u.id_unidade }}">{{ u.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-5 mb-3">
+                            <label class="form-label">Data e Hora</label>
+                            <input type="datetime-local" class="form-control" name="data_hora" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Duração (min)</label>
+                            <input type="number" class="form-control" name="duracao_minutos" min="1" required>
+                        </div>
+                    </div>
+
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Registrar</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check2-circle"></i> Registrar Atendimento</button>
                 </div>
             </form>
         </div>

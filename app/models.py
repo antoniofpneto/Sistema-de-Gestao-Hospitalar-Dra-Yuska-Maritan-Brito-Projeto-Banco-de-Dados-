@@ -137,6 +137,7 @@ class Unidade(db.Model):
 
     escalas = db.relationship('Escala', backref='unidade')
     internacoes = db.relationship('Internacao', backref='unidade')
+    atendimentos = db.relationship('Atendimento', backref='unidade')
 
     __table_args__ = (
         db.CheckConstraint("capacidade_leitos >= 0", name = 'chk_capacity'),

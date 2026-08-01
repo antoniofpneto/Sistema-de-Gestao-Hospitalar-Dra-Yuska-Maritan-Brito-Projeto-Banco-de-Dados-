@@ -285,6 +285,30 @@ def media_duracao_residente(id_residente):
     return f"O tempo médio de atendimento deste residente é de {media_formatada} minutos."
 
 
+@app.route('/atendimento/<int:id_atendimento>')
+def detalhe_atendimento(id_atendimento):
+    # Busca o atendimento.
+    atendimento = Atendimento.query.get_or_404(id_atendimento)
+    return render_template('atendimento_detalhe.html', atendimento=atendimento)
+
+
+@app.route('/atendimento/<int:id_atendimento>/procedimento/<int:id_procedimento>/deletar', methods=['POST'])
+def deletar_procedimento_realizado(id_atendimento, id_procedimento):
+    # Busca o registro na tabela associativa pela chave primária composta
+    pr = ProcedimentoRealizado.query.get_or_404((id_atendimento, id_procedimento))
+    
+    # REGRA DE NEGÓCIO DA APLICAÇÃO: Bloqueia exclusão de itens já cobrados
+    if pr.faturado:
+        return "Erro de Regra de Negócio: Procedimentos faturados (já enviados para cobrança) não podem ser excluídos do sistema.", 403
+    
+    try:
+        db.session.delete(pr)
+        db.session.commit()
+        return redirect(url_for('detalhe_atendimento', id_atendimento=id_atendimento))
+    except Exception as e:
+        db.session.rollback()
+        return f"Erro ao remover o procedimento: {str(e)}", 400
+
 
 if __name__ == '__main__':
     with app.app_context():

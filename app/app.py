@@ -3,7 +3,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for
 from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade
 from dotenv import load_dotenv, find_dotenv
-from sqlalchemy import func
+from sqlalchemy import func, text
 from datetime import date, datetime
 
 # carrregar as variáveis de ambiente para a memória
@@ -183,17 +183,28 @@ def inserir_atendimento():
     try:
         data_hora = datetime.strptime(data_hora_str, '%Y-%m-%dT%H:%M')
         
-        # Criação do objeto usando o ORM
-        novo_atend = Atendimento(
-            id_paciente=id_paciente,
-            id_residente=id_residente,
-            id_preceptor=id_preceptor,
-            id_unidade=id_unidade,
-            data_hora=data_hora,
-            duracao_minutos=duracao_minutos
-        )
+        # Criamos o pacote de parâmetros. 
+        parametros = {
+            "p_id_paciente": int(id_paciente),
+            "p_id_residente": int(id_residente),
+            "p_id_preceptor": int(id_preceptor),
+            "p_id_unidade": int(id_unidade),
+            "p_data_hora": data_hora,
+            "p_duracao": int(duracao_minutos),
+            "p_procedimentos": '[]' # JSON vindo do Front
+        }
+
+        # Chamamos a Stored Procedure passando as variáveis com segurança (bind parameters)
+        sql = text("""
+            CALL sp_registrar_atendimento_completo(
+                :p_id_paciente, :p_id_residente, :p_id_preceptor, 
+                :p_id_unidade, :p_data_hora, :p_duracao, CAST(:p_procedimentos AS jsonb)
+            )
+        """)
         
-        db.session.add(novo_atend)
+        db.session.execute(sql, parametros)
+        # O commit é necessário para confirmar a chamada da Procedure
+        db.session.commit()
         db.session.commit()
         return redirect(url_for('listar_atendimentos'))
         

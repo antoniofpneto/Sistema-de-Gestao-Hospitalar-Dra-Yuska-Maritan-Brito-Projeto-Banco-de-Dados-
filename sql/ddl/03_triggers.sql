@@ -14,3 +14,5 @@ CREATE TRIGGER trg_atualiza_media_procedimentos
 AFTER INSERT ON PROCEDIMENTO_REALIZADO
 FOR EACH ROW
 EXECUTE FUNCTION trg_atualiza_media_procedimentos_fn();
+
+\i sql/ddl/04_views.sql

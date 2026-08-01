@@ -243,3 +243,4 @@ END;
 $$;
 
 
+\i sql/ddl/03_triggers.sql

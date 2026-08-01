@@ -226,5 +226,3 @@ CREATE TABLE HISTORICO_PAPEL (
     CONSTRAINT chk_papel CHECK (papel IN ('Residente', 'Preceptor')),
     CONSTRAINT chk_datas_historico CHECK (data_fim IS NULL OR data_fim >= data_inicio)
 );
-
-\i sql/ddl/02_stored_procedures.sql

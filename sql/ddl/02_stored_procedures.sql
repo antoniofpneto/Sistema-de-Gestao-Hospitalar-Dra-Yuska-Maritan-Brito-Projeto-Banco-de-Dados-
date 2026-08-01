@@ -5,6 +5,7 @@ CREATE OR REPLACE PROCEDURE sp_registrar_atendimento_completo(
     IN p_id_paciente INT,
     IN p_id_residente INT,
     IN p_id_preceptor INT,
+    IN p_id_unidade INT,
     IN p_data_hora TIMESTAMP,
     IN p_duracao_minutos INT,
     IN p_procedimentos JSONB
@@ -23,6 +24,7 @@ BEGIN
         id_paciente,
         id_residente,
         id_preceptor,
+        id_unidade,
         data_hora,
         duracao_minutos
     )
@@ -30,6 +32,7 @@ BEGIN
         p_id_paciente,
         p_id_residente,
         p_id_preceptor,
+        p_id_unidade,
         p_data_hora,
         p_duracao_minutos
     )
@@ -241,6 +244,3 @@ BEGIN
     RETURN NULL;
 END;
 $$;
-
-
-\i sql/ddl/03_triggers.sql

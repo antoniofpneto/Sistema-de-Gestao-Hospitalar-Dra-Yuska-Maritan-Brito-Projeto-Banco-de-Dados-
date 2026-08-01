@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-shield-check"></i> Auditoria de Atendimentos</h2>
+    <span class="badge bg-secondary text-white" title="Triggers ativas no SGBD">Monitoramento Automático (Trigger)</span>
+</div>
+
+<div class="card shadow-sm border-secondary">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0">Histórico de Modificações na Tabela ATENDIMENTO</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">ID Log</th>
+                        <th>ID Atendimento</th>
+                        <th>Operação</th>
+                        <th>Usuário SGBD</th>
+                        <th>Data/Hora do Evento</th>
+                        <th>Dados Antigos (JSON)</th>
+                        <th>Dados Novos (JSON)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for audit in auditorias %}
+                    <tr>
+                        <td class="ps-3 text-muted">#{{ audit.id_auditoria }}</td>
+                        <td><strong>{{ audit.id_atendimento }}</strong></td>
+                        <td>
+                            {% if audit.operacao == 'Insercao' or audit.operacao == 'INSERT' %}
+                                <span class="badge bg-success">Inserção</span>
+                            {% elif audit.operacao == 'Atualizacao' or audit.operacao == 'UPDATE' %}
+                                <span class="badge bg-primary">Atualização</span>
+                            {% else %}
+                                <span class="badge bg-danger">Exclusão</span>
+                            {% endif %}
+                        </td>
+                        <td><code>{{ audit.usuario }}</code></td>
+                        <td>{{ audit.data_hora.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                        <!-- Coluna de Dados Antigos -->
+                        <td>
+                            {% if audit.dados_antigos %}
+                                {% if audit.dados_antigos is mapping %}
+                                    <div class="d-flex flex-column">
+                                        {% for chave, valor in audit.dados_antigos.items() %}
+                                            <div class="small mb-1">
+                                                <strong class="text-secondary">{{ chave }}:</strong> 
+                                                <span class="text-muted">{{ valor }}</span>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <!-- Fallback caso o dado venha como string pura -->
+                                    <small class="text-muted font-monospace">{{ audit.dados_antigos }}</small>
+                                {% endif %}
+                            {% else %}
+                                <small class="text-muted">N/A</small>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Coluna de Dados Novos -->
+                        <td>
+                            {% if audit.dados_novos %}
+                                {% if audit.dados_novos is mapping %}
+                                    <div class="d-flex flex-column">
+                                        {% for chave, valor in audit.dados_novos.items() %}
+                                            <div class="small mb-1">
+                                                <strong class="text-secondary">{{ chave }}:</strong> 
+                                                <span class="text-success fw-medium">{{ valor }}</span>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <!-- Fallback caso o dado venha como string pura -->
+                                    <small class="text-success font-monospace">{{ audit.dados_novos }}</small>
+                                {% endif %}
+                            {% else %}
+                                <small class="text-muted">N/A</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">Nenhum registro de auditoria capturado até o momento.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

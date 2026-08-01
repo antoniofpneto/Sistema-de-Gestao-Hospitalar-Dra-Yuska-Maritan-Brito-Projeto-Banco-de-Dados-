@@ -130,16 +130,26 @@ INSERT INTO PROCEDIMENTO (id_procedimento, codigo, nome, tempo_medio_minutos, ni
 --    id_atendimento + id_procedimento)
 -- =========================================================
 INSERT INTO PROCEDIMENTO_REALIZADO (id_atendimento, id_procedimento, quantidade, tempo_real_minutos, data_hora_inicio, observacao, faturado) VALUES
-(1,  1, 1, 22, '2026-06-01 08:30:00', 'Sem intercorrencias',                       TRUE),
-(2,  2, 1, 8,  '2026-06-01 09:15:00', NULL,                                        TRUE),
-(3,  5, 1, 28, '2026-06-02 10:00:00', 'Paciente estavel durante o procedimento',  FALSE),
-(4,  3, 2, 18, '2026-06-02 11:30:00', NULL,                                        TRUE),
-(5,  6, 1, 45, '2026-06-03 14:00:00', 'Procedimento de alta complexidade',        FALSE),
-(6,  7, 1, 12, '2026-06-03 15:20:00', NULL,                                        TRUE),
-(7,  4, 1, 33, '2026-06-04 08:00:00', 'Curativo trocado',                          TRUE),
-(8,  2, 1, 9,  '2026-06-04 09:45:00', NULL,                                        TRUE),
-(9,  8, 1, 40, '2026-06-05 13:10:00', 'Amostra enviada para laboratorio',         FALSE),
-(10, 1, 1, 18, '2026-06-05 16:00:00', NULL,                                        TRUE);
+-- Atendimento 1 (08:30) -> Procedimento às 08:42 (Espera: 12 min) | Unidade 1
+(1,  1, 1, 22, '2026-06-01 08:42:00', 'Sem intercorrencias',                       TRUE),
+-- Atendimento 2 (09:15) -> Procedimento às 09:20 (Espera: 5 min)  | Unidade 2
+(2,  2, 1, 8,  '2026-06-01 09:20:00', NULL,                                        TRUE),
+-- Atendimento 3 (10:00) -> Procedimento às 10:18 (Espera: 18 min) | Unidade 3
+(3,  5, 1, 28, '2026-06-02 10:18:00', 'Paciente estavel durante o procedimento',   FALSE),
+-- Atendimento 4 (11:30) -> Procedimento às 11:45 (Espera: 15 min) | Unidade 1
+(4,  3, 2, 18, '2026-06-02 11:45:00', NULL,                                        TRUE),
+-- Atendimento 5 (14:00) -> Procedimento às 14:22 (Espera: 22 min) | Unidade 2
+(5,  6, 1, 45, '2026-06-03 14:22:00', 'Procedimento de alta complexidade',         FALSE),
+-- Atendimento 6 (15:20) -> Procedimento às 15:30 (Espera: 10 min) | Unidade 3
+(6,  7, 1, 12, '2026-06-03 15:30:00', NULL,                                        TRUE),
+-- Atendimento 7 (08:00) -> Procedimento às 08:25 (Espera: 25 min) | Unidade 1
+(7,  4, 1, 33, '2026-06-04 08:25:00', 'Curativo trocado',                          TRUE),
+-- Atendimento 8 (09:45) -> Procedimento às 09:53 (Espera: 8 min)  | Unidade 2
+(8,  2, 1, 9,  '2026-06-04 09:53:00', NULL,                                        TRUE),
+-- Atendimento 9 (13:10) -> Procedimento às 13:20 (Espera: 10 min) | Unidade 3
+(9,  8, 1, 40, '2026-06-05 13:20:00', 'Amostra enviada para laboratorio',          FALSE),
+-- Atendimento 10 (16:00) -> Procedimento às 16:15 (Espera: 15 min) | Unidade 1
+(10, 1, 1, 18, '2026-06-05 16:15:00', NULL,                                        TRUE);
 
 INSERT INTO AUDITORIA_ATENDIMENTO (id_atendimento, operacao, usuario, dados_antigos, dados_novos) VALUES
 (1, 'Insercao', 'admin', jsonb_build_object('status', 'novo'), jsonb_build_object('status', 'cadastrado')),

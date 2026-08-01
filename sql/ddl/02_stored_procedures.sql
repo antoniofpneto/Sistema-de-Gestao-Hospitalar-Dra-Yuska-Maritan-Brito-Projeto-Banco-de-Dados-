@@ -73,24 +73,23 @@ END;
 $$;
 
 -- Função para calcular o tempo médio entre a chegada do paciente e o início do primeiro procedimento realizado, agrupando por unidade
-CREATE OR REPLACE FUNCTION sp_calcular_tempo_medio_espera()
-RETURNS TABLE (
-    id_unidade INT,
-    nome_unidade VARCHAR,
-    tempo_medio_espera_minutos NUMERIC
-)
+CREATE OR REPLACE PROCEDURE sp_calcular_tempo_medio_espera(INOUT p_resultado REFCURSOR)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    RETURN QUERY
+    OPEN p_resultado FOR
     SELECT
-        a.id_unidade,
-        u.nome,
-        ROUND(AVG(
-            EXTRACT(EPOCH FROM (proc.inicio_primeiro_procedimento - a.data_hora)) / 60
-        )::NUMERIC, 2) AS tempo_medio_espera_minutos
-    FROM ATENDIMENTO a
-    JOIN (
+        u.id_unidade,
+        u.nome AS nome_unidade,
+        COALESCE(
+            ROUND(AVG(
+                EXTRACT(EPOCH FROM (proc.inicio_primeiro_procedimento - a.data_hora)) / 60
+            )::NUMERIC, 2), 
+            0
+        ) AS tempo_medio_espera_minutos
+    FROM UNIDADE u
+    LEFT JOIN ATENDIMENTO a ON u.id_unidade = a.id_unidade
+    LEFT JOIN (
         SELECT
             id_atendimento,
             MIN(data_hora_inicio) AS inicio_primeiro_procedimento
@@ -98,8 +97,8 @@ BEGIN
         WHERE data_hora_inicio IS NOT NULL
         GROUP BY id_atendimento
     ) proc ON proc.id_atendimento = a.id_atendimento
-    JOIN UNIDADE u ON u.id_unidade = a.id_unidade
-    GROUP BY a.id_unidade, u.nome;
+    GROUP BY u.id_unidade, u.nome
+    ORDER BY u.id_unidade;
 END;
 $$;
 

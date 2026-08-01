@@ -6,19 +6,18 @@
     <p class="text-muted">Visão geral e Roteiro de Apresentação Acadêmica</p>
 </div>
 
-<!-- Cards Fictícios (Mocks) que substituiremos pelas Views depois -->
-<div class="row mb-5">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary shadow-sm"><div class="card-body"><h5 class="card-title">Pacientes Ativos</h5><h2 class="display-5">124</h2></div></div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-success shadow-sm"><div class="card-body"><h5 class="card-title">Atendimentos Hoje</h5><h2 class="display-5">38</h2></div></div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning shadow-sm"><div class="card-body"><h5 class="card-title">Leitos Ocupados</h5><h2 class="display-5">85%</h2></div></div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-danger shadow-sm"><div class="card-body"><h5 class="card-title">Plantões Ativos</h5><h2 class="display-5">12</h2></div></div>
+<!-- Seção do Gráfico de Tempo Médio por Unidade -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Tempo Médio de Atendimento por Unidade</h5>
+            </div>
+            <div class="card-body">
+                <!-- O Chart.js vai desenhar o gráfico dentro deste canvas -->
+                <canvas id="graficoTempoUnidades" height="80"></canvas>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -70,4 +69,42 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('graficoTempoUnidades').getContext('2d');
+
+        // Recebendo os dados do Flask. O 'tojson' converte a lista Python em Array JS.
+        const unidadesLabels = {{ unidades_nomes | default([]) | tojson }};
+        const temposData = {{ unidades_tempos | default([]) | tojson }};
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: unidadesLabels,
+                datasets: [{
+                    label: 'Tempo Médio de Atendimento (min)',
+                    data: temposData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)', // Azul semi-transparente
+                    borderColor: 'rgba(54, 162, 235, 1)',       // Azul sólido
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Minutos' }
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

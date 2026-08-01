@@ -145,22 +145,29 @@
         const linha = document.createElement('div');
         linha.className = 'row mb-2 linha-procedimento';
         linha.innerHTML = `
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <select class="form-select select-proc" required>
-                    <option value="" disabled selected>Escolha o procedimento...</option>
+                    <option value="" disabled selected>Procedimento...</option>
                     {% for proc in procedimentos %}
                         <option value="{{ proc.id_procedimento }}">{{ proc.codigo }} - {{ proc.nome }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2">
-                <input type="number" class="form-control input-qtd" placeholder="Qtd" min="1" value="1" required>
+            <!-- NOVO CAMPO: Início do Procedimento -->
+            <div class="col-md-4">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">Início</span>
+                    <input type="datetime-local" class="form-control input-inicio" required>
+                </div>
             </div>
-            <div class="col-md-3">
-                <input type="number" class="form-control input-tempo" placeholder="Tempo (min)" min="1" required>
+            <div class="col-md-1">
+                <input type="number" class="form-control input-qtd form-control-sm" placeholder="Qtd" min="1" value="1" required>
             </div>
             <div class="col-md-2">
-                <button type="button" class="btn btn-outline-danger w-100" onclick="this.closest('.linha-procedimento').remove()">
+                <input type="number" class="form-control input-tempo form-control-sm" placeholder="Min" min="1" required title="Tempo (min)">
+            </div>
+            <div class="col-md-1 text-end">
+                <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="this.closest('.linha-procedimento').remove()">
                     <i class="bi bi-trash"></i>
                 </button>
             </div>
@@ -178,14 +185,17 @@
             const idProc = linha.querySelector('.select-proc').value;
             const qtd = linha.querySelector('.input-qtd').value;
             const tempo = linha.querySelector('.input-tempo').value;
+            const inicio = linha.querySelector('.input-inicio').value;
 
-            if (idProc && qtd && tempo) {
+            // Valida se todos os campos estão preenchidos antes de adicionar
+            if (idProc && qtd && tempo && inicio) {
                 // Monta o objeto no exato formato que a Stored Procedure espera
                 listaProcedimentos.push({
                     id_procedimento: parseInt(idProc),
                     quantidade: parseInt(qtd),
                     tempo_real_minutos: parseInt(tempo),
-                    observacao: ""
+                    data_hora_inicio: inicio,
+                    observacao: null
                 });
             }
         });

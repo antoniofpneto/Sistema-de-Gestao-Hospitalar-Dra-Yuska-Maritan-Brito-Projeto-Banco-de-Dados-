@@ -19,23 +19,22 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>Data/Hora</th>
                         <th>Paciente</th>
                         <th>Residente</th>
                         <th>Preceptor</th>
+                        <th>Data/Hora</th>
                         <th>Unidade</th>
                         <th>Duração</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for a in atendimentos %}
-                    <tr>
-                        <td>{{ a.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <tr onclick="window.location.href='/atendimento/{{ a.id_atendimento }}'" style="cursor: pointer;">
                         <td>{{ a.paciente.pessoa.nome }}</td>
                         <td>{{ a.residente.pessoa.nome }}</td>
                         <td>{{ a.preceptor.pessoa.nome }}</td>
-                        <!-- Busca o nome da unidade pelo relacionamento -->
-                        <td><span class="badge bg-secondary">{{ a.unidade.nome }}</span></td>
+                        <td>{{ a.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td><span class="badge bg-primary">{{ a.unidade.nome }}</span></td>
                         <td>{{ a.duracao_minutos }} min</td>
                     </tr>
                     {% else %}

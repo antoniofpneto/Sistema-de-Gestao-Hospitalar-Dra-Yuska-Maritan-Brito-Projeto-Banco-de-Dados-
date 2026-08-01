@@ -2,11 +2,13 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for
 from models import db, Pessoa, Paciente
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from sqlalchemy import func
 
 # carrregar as variáveis de ambiente para a memória
-load_dotenv()
+load_dotenv(find_dotenv())
+
+os.environ["PGCLIENTENCODING"] = "utf-8" #[cite: 3]
 
 app = Flask(__name__)
 
@@ -17,9 +19,8 @@ db_host = os.getenv('DB_HOST')
 db_port = os.getenv('DB_PORT')
 db_name = os.getenv('DB_NAME')
 
-
 # Monta a URL de conexão usando as variáveis (f-string do Python)
-app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}?client_encoding=utf8&options=-c%20lc_messages=C' #[cite: 3]
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)

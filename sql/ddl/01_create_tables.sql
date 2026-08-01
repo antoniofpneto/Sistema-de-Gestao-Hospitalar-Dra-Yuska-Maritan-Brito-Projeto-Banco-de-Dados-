@@ -1,3 +1,5 @@
+-- Script para criar as tabelas do banco de dados do sistema de gestão hospitalar.
+
 -- 00. Remoção das tabelas existentes (Obviamente, respeitando a ordem baseada nas chaves estrangeiras)
 DROP TABLE IF EXISTS HISTORICO_PAPEL CASCADE;
 DROP TABLE IF EXISTS INTERNACAO CASCADE;
@@ -15,9 +17,7 @@ DROP TABLE IF EXISTS ALERGIA_PACIENTE CASCADE;
 DROP TABLE IF EXISTS PACIENTE CASCADE;
 DROP TABLE IF EXISTS PESSOA CASCADE;
 
--- 01. Script para criar as tabelas do banco de dados do sistema de gestão hospitalar.
-
--- Criação das tabelas:
+-- 01. Criação das tabelas:
 
 -- Criação da tabela entidade PESSOA
 CREATE TABLE PESSOA (

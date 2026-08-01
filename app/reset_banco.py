@@ -15,18 +15,18 @@ SCRIPTS_SQL = [
 
 def resetar_banco():
     with app.app_context():
-        print("🧹 Iniciando limpeza profunda do banco de dados...")
+        print("Iniciando limpeza profunda do banco de dados...")
         
         # O comando abaixo apaga TODAS as tabelas, views, procedures e triggers
         # do esquema padrão e recria um esquema vazio e limpo.
         db.session.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
         db.session.commit()
         
-        print("✅ Banco esvaziado. Iniciando reconstrução...\n")
+        print("Banco esvaziado. Iniciando reconstrução...\n")
         
         for caminho_arquivo in SCRIPTS_SQL:
             if os.path.exists(caminho_arquivo):
-                print(f"⏳ Executando: {caminho_arquivo}")
+                print(f"Executando: {caminho_arquivo}")
                 with open(caminho_arquivo, 'r', encoding='utf-8') as file:
                     script_sql = file.read()
                     
@@ -38,9 +38,9 @@ def resetar_banco():
                     db.session.execute(text(script_sql))
                     db.session.commit()
             else:
-                print(f"❌ ATENÇÃO: Arquivo não encontrado - {caminho_arquivo}")
+                print(f"ATENÇÃO: Arquivo não encontrado - {caminho_arquivo}")
                 
-        print("\n🚀 Sucesso! O banco de dados foi resetado e populado com os dados da Etapa 1.")
+        print("\nSucesso! O banco de dados foi resetado e populado com os dados da Etapa 1.")
 
 if __name__ == '__main__':
     # Adicionamos uma confirmação de segurança para evitar acidentes

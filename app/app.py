@@ -310,6 +310,24 @@ def deletar_procedimento_realizado(id_atendimento, id_procedimento):
         return f"Erro ao remover o procedimento: {str(e)}", 400
 
 
+@app.route('/profissionais')
+def listar_profissionais():
+    # Busca preceptores
+    preceptores = Preceptor.query.all()
+    
+    # Agregação do SQLAlchemy
+    # OUTER JOIN (caso o residente ainda não tenha atendimentos) 
+    # Calculamos a média de duração, arredondando para 2 casas decimais.
+    residentes_stats = db.session.query(
+        Residente,
+        func.round(func.avg(Atendimento.duracao_minutos), 2).label('tempo_medio')
+    ).outerjoin(Atendimento).group_by(Residente.id_profissional).all()
+    
+    return render_template('profissionais.html', 
+                           preceptores=preceptores, 
+                           residentes_stats=residentes_stats)
+
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all() # Cria as tabelas caso não existam (útil para testes, mas no seu caso o script SQL já fez isso)

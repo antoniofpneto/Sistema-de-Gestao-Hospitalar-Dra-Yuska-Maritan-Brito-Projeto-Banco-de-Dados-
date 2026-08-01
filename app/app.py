@@ -1,7 +1,7 @@
 # app.py
 import os
 from flask import Flask, render_template, request, redirect, url_for
-from models import db, Pessoa, Paciente
+from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado
 from dotenv import load_dotenv, find_dotenv
 from sqlalchemy import func
 
@@ -25,9 +25,39 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
+# app.py
+
+# ... (criação do app)
+
+# Função que formata o CPF
+def format_cpf(cpf):
+    if cpf and len(cpf) == 11:
+        return f"{cpf[:3]}.{cpf[3:6]}.{cpf[6:9]}-{cpf[9:]}"
+    return cpf
+
+# Função que formata o Telefone
+def format_telefone(telefone):
+    if telefone and len(telefone) == 11:
+        return f"({telefone[:2]}) {telefone[2:7]}-{telefone[7:]}"
+    return telefone
+
+# registra as funções como filtros no Jinja2
+app.jinja_env.filters['cpf'] = format_cpf
+app.jinja_env.filters['telefone'] = format_telefone
+
 @app.route('/')
 def dashboard():
-    return render_template('dashboard.html')
+    # Buscamos o primeiro registro de cada entidade para montar os links da apresentação dinamicamente
+    primeiro_paciente = Paciente.query.first()
+    primeiro_residente = Residente.query.first()
+    primeiro_atendimento = Atendimento.query.first()
+    
+    # Prevenção: se o banco estiver vazio, não quebra a interface
+    id_pac = primeiro_paciente.id_pessoa if primeiro_paciente else 0
+    id_res = primeiro_residente.id_profissional if primeiro_residente else 0
+    id_atend = primeiro_atendimento.id_atendimento if primeiro_atendimento else 0
+    
+    return render_template('dashboard.html', id_pac=id_pac, id_res=id_res, id_atend=id_atend)
 
 
 @app.route('/paciente/deletar/<int:id>', methods=['POST'])
@@ -121,22 +151,18 @@ def detalhe_paciente(id_pessoa):
     paciente = Paciente.query.get_or_404(id_pessoa)
     return render_template('paciente_detalhe.html', paciente=paciente)
 
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all() # Cria as tabelas caso não existam (útil para testes, mas no seu caso o script SQL já fez isso)
-    app.run(debug=True)
-
 
 
 # A partir daqui foram implementadas as rotas para as consultas estabelecidas na Etapa I
 
+# Consulta 01 - Inserir novo atendimento
 @app.route('/atendimento/novo', methods=['POST'])
 def inserir_atendimento():
     id_paciente = request.form.get('id_paciente')
     id_residente = request.form.get('id_residente')
     id_preceptor = request.form.get('id_preceptor')
     
-    # 1. Verifica se paciente, residente e preceptor existem usando o ORM
+    # Verifica se paciente, residente e preceptor existem usando o ORM
     paciente = Paciente.query.get(id_paciente)
     residente = Residente.query.get(id_residente)
     preceptor = Preceptor.query.get(id_preceptor)
@@ -144,7 +170,7 @@ def inserir_atendimento():
     if not (paciente and residente and preceptor):
         return "Erro: Paciente, Residente ou Preceptor não encontrados no sistema.", 404
         
-    # 2. Insere o atendimento
+    # Insere o atendimento
     novo_atendimento = Atendimento(
         id_paciente=id_paciente,
         id_residente=id_residente,
@@ -155,3 +181,81 @@ def inserir_atendimento():
     db.session.add(novo_atendimento)
     db.session.commit()
     return redirect(url_for('listar_pacientes')) # Ou para a rota de atendimentos
+
+@app.route('/atendimentos')
+def listar_atendimentos():
+    # Busca todos os atendimentos ordenados do mais recente para o mais antigo
+    atendimentos = Atendimento.query.order_by(Atendimento.data_hora.desc()).all()
+    return render_template('atendimentos.html', atendimentos=atendimentos)
+
+
+# Consulta 02 - Listar todos os atendimentos de um paciente específico
+@app.route('/paciente/<int:id_pessoa>/atendimentos')
+def atendimentos_por_paciente(id_pessoa):
+    # Uso do lazy loading / filter
+    atendimentos = Atendimento.query\
+        .filter_by(id_paciente=id_pessoa)\
+        .order_by(Atendimento.data_hora.desc())\
+        .all()
+        
+    return render_template('lista_atendimentos.html', atendimentos=atendimentos)
+
+# Consulta 03 - Listar os procedimentos que foram realizados em um atendimento
+@app.route('/atendimento/<int:id_atendimento>/procedimentos')
+def procedimentos_do_atendimento(id_atendimento):
+    # Busca os procedimentos filtrando pelo ID do atendimento
+    procedimentos_realizados = ProcedimentoRealizado.query\
+        .filter_by(id_atendimento=id_atendimento)\
+        .all()
+    
+    # Graças ao relationship 'procedimento_rel', podemos acessar o nome do procedimento
+    # ex no HTML: {{ proc.procedimento_rel.nome }}, {{ proc.quantidade }}, {{ proc.tempo_real_minutos }}
+    return render_template('lista_procedimentos.html', procedimentos=procedimentos_realizados)
+
+
+# Consulta 04 - Atualizar os dados de um paciente
+@app.route('/paciente/atualizar_convenio/<int:id_pessoa>', methods=['POST'])
+def atualizar_convenio_paciente(id_pessoa):
+    paciente = Paciente.query.get_or_404(id_pessoa)
+    
+    # Atualiza o dado diretamente no objeto Python
+    paciente.num_convenio = request.form.get('num_convenio')
+    
+    # Apenas o commit é necessário (O ORM percebe a alteração e faz o UPDATE sozinho)
+    db.session.commit()
+    return redirect(url_for('detalhe_paciente', id_pessoa=id_pessoa))
+
+
+# Consulta 05 - Remover um procedimento realizado
+@app.route('/procedimento_realizado/remover/<int:id_atendimento>/<int:id_procedimento>', methods=['POST'])
+def remover_procedimento_realizado(id_atendimento, id_procedimento):
+    # Busca pela PK Composta (tupla)
+    proc_realizado = ProcedimentoRealizado.query.get_or_404((id_atendimento, id_procedimento))
+    
+    # Validação da regra de negócio (só remove se não houver faturamento associado)
+    if proc_realizado.faturado:
+        return "Acesso Negado: Não é possível remover um procedimento já faturado.", 403
+        
+    db.session.delete(proc_realizado)
+    db.session.commit()
+    return redirect(url_for('procedimentos_do_atendimento', id_atendimento=id_atendimento))
+
+
+# Consulta 06 - Calcula o tempo médio de duração dos atendimentos por
+@app.route('/residente/<int:id_residente>/media_atendimentos')
+def media_duracao_residente(id_residente):
+    # Equivalente a: SELECT AVG(duracao_minutos) FROM atendimento WHERE id_residente = X
+    media = db.session.query(func.avg(Atendimento.duracao_minutos))\
+        .filter_by(id_residente=id_residente)\
+        .scalar() # scalar() pega o valor numérico direto do resultado
+        
+    # Arredondando para 2 casas decimais, ou 0 se não houver atendimentos
+    media_formatada = round(media, 2) if media else 0
+    return f"O tempo médio de atendimento deste residente é de {media_formatada} minutos."
+
+
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all() # Cria as tabelas caso não existam (útil para testes, mas no seu caso o script SQL já fez isso)
+    app.run(debug=True)

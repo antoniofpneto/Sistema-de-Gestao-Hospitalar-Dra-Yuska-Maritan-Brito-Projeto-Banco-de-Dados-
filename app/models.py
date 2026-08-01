@@ -31,10 +31,10 @@ class Paciente(db.Model):
     num_convenio = db.Column(db.String(50))
     grupo_sanguineo = db.Column(db.String(3))
     
-    # Relacionamentos
-    atendimentos = db.relationship('Atendimento', backref='paciente_rel')
-    internacoes = db.relationship('Internacao', backref='paciente_rel')
-    alergias = db.relationship('AlergiaPaciente', backref='paciente_rel', cascade="all, delete-orphan")
+    # Relacionamentos para o Python
+    atendimentos = db.relationship('Atendimento', backref='paciente', overlaps="atendimentos,paciente_rel")
+    internacoes = db.relationship('Internacao', backref='paciente')
+    alergias = db.relationship('AlergiaPaciente', backref='paciente', cascade="all, delete-orphan")
 
     # restrição do tipo sanguíneo
     __table_args__ = (
@@ -59,8 +59,8 @@ class Profissional(db.Model):
     data_admissao = db.Column(db.Date, nullable=False)
 
     # Relacionamentos
-    preceptor = db.relationship('Preceptor', backref='profissional_rel', uselist=False)
-    residente = db.relationship('Residente', backref='profissional_rel', uselist=False)
+    preceptor = db.relationship('Preceptor', backref='profissional', uselist=False)
+    residente = db.relationship('Residente', backref='profissional', uselist=False)
     especialidades = db.relationship('EspecialidadeProfissional', backref='profissional_rel', cascade="all, delete-orphan")
     historico = db.relationship('HistoricoPapel', backref='profissional_rel')
 
@@ -93,13 +93,17 @@ class Preceptor(db.Model):
     id_profissional = db.Column(db.Integer, db.ForeignKey('profissional.id_pessoa', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     titulacao = db.Column(db.String(50), nullable=False)
 
-    atendimentos = db.relationship('Atendimento', backref='preceptor_rel')
-    escalas = db.relationship('Escala', backref='preceptor_rel')
-    internacoes = db.relationship('Internacao', backref='preceptor_rel')
+    atendimentos = db.relationship('Atendimento', backref='preceptor', overlaps="atendimentos,preceptor_rel")
+    escalas = db.relationship('Escala', backref='preceptor')
+    internacoes = db.relationship('Internacao', backref='preceptor')
 
     __table_args__ = (
         db.CheckConstraint("titulacao IN ('Especialista', 'Mestre', 'Doutor', 'Livre-Docente')", name='chk_titulacao'),
     )
+
+    @property
+    def pessoa(self):
+        return self.profissional.pessoa
 
 
 class Residente(db.Model):
@@ -108,13 +112,17 @@ class Residente(db.Model):
     id_profissional = db.Column(db.Integer, db.ForeignKey('profissional.id_pessoa', ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     ano_residencia = db.Column(db.String(2), nullable=False)
 
-    atendimentos = db.relationship('Atendimento', backref='residente_rel')
-    escalas = db.relationship('Escala', backref='residente_rel')
-    internacoes = db.relationship('Internacao', backref='residente_rel')
+    atendimentos = db.relationship('Atendimento', backref='residente', overlaps="atendimentos,residente_rel")
+    escalas = db.relationship('Escala', backref='residente')
+    internacoes = db.relationship('Internacao', backref='residente')
 
     __table_args__ = (
         db.CheckConstraint("ano_residencia IN ('R1', 'R2', 'R3')", name = 'chk_ano_residencia'),
     )
+
+    @property
+    def pessoa(self):
+        return self.profissional.pessoa
 
 
 
@@ -127,8 +135,8 @@ class Unidade(db.Model):
     tipo = db.Column(db.String(50), nullable=False)
     capacidade_leitos = db.Column(db.Integer, nullable=False, default=0)
 
-    escalas = db.relationship('Escala', backref='unidade_rel')
-    internacoes = db.relationship('Internacao', backref='unidade_rel')
+    escalas = db.relationship('Escala', backref='unidade')
+    internacoes = db.relationship('Internacao', backref='unidade')
 
     __table_args__ = (
         db.CheckConstraint("capacidade_leitos >= 0", name = 'chk_capacity'),
@@ -146,6 +154,7 @@ class Atendimento(db.Model):
     data_hora = db.Column(db.DateTime, nullable=False)
     duracao_minutos = db.Column(db.Integer, nullable=False)
 
+    # Relações de identidades para o Python
     procedimentos_realizados = db.relationship('ProcedimentoRealizado', backref='atendimento_rel')
 
     __table_args__ = (
@@ -163,6 +172,9 @@ class AuditoriaAtendimento(db.Model):
     operacao = db.Column(db.String(20), nullable=False)  # Inserção, atualização ou exclusão
     dados_antigos = db.Column(db.JSON)
     dados_novos = db.Column(db.JSON)
+
+    # Relações de identidades para o Python
+    atendimento = db.relationship('Atendimento', backref='auditorias')
 
     __table_args__ = (
         db.CheckConstraint("operacao IN ('Insercao', 'Atualizacao', 'Exclusao')", name='chk_operacao'),

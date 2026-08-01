@@ -2,6 +2,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for
 from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade, Procedimento
+import consultas_avancadas as ca
 from dotenv import load_dotenv, find_dotenv
 from sqlalchemy import func, text
 from datetime import date, datetime
@@ -377,6 +378,14 @@ def listar_profissionais():
                            preceptores=preceptores, 
                            residentes_stats=residentes_stats)
 
+@app.route('/consultas-avancadas')
+def consultas_avancadas():
+    return render_template(
+        'consultas_avancadas.html',
+        preceptores_flamenguistas=ca.preceptores_de_atendimentos_a_flamenguistas(),
+        ultimos_atendimentos=ca.ultimo_atendimento_por_paciente(),
+        percentuais_alto_risco=ca.percentual_alto_risco_por_residente(),
+    )
 
 if __name__ == '__main__':
     with app.app_context():

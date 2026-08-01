@@ -1,6 +1,6 @@
 # app.py
 import os
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade, Procedimento, Profissional, Escala, EspecialidadeProfissional
 import consultas_avancadas as ca
 from dotenv import load_dotenv, find_dotenv
@@ -13,6 +13,9 @@ load_dotenv(find_dotenv())
 os.environ["PGCLIENTENCODING"] = "utf-8" #[cite: 3]
 
 app = Flask(__name__)
+
+# Habilitar a assinatura criptográfica de sessões
+app.secret_key = 'chave_secreta_hospital_ufpb_2026'
 
 # Puxa os dados da memória de forma segura
 db_user = os.getenv('DB_USER')
@@ -408,14 +411,78 @@ def profissional_detalhe(id_prof):
         or_(Escala.id_residente == id_prof, Escala.id_preceptor == id_prof)
     ).all()
 
+    unidades = Unidade.query.all()
+
+    # Recupera dados salvos na sessão em caso de erro anterior no formulário
+    reajuste_dados = session.pop('reajuste_dados', None)
+    reajuste_erro = session.pop('reajuste_erro', None)
+
     return render_template(
         'profissional_detalhe.html',
         profissional=profissional,
         tipo_profissional=tipo_profissional,
         dado_especifico=dado_especifico,
         especialidades=especialidades,
-        escalas=escalas
+        escalas=escalas,
+        unidades=unidades,
+        reajuste_dados=reajuste_dados,
+        reajuste_erro=reajuste_erro
     )
+
+@app.route('/escala/reajustar', methods=['POST'])
+def reajustar_escala():
+    id_residente = request.form.get('id_residente')
+    id_unidade_origem = request.form.get('unidade_atual')
+    dia_origem = request.form.get('dia_atual')
+    turno_origem = request.form.get('turno_atual')
+    
+    id_unidade_destino = request.form.get('nova_unidade')
+    dia_destino = request.form.get('novo_dia')
+    turno_destino = request.form.get('novo_turno')
+
+    try:
+        with db.engine.connect() as connection:
+            trans = connection.begin()
+            
+            # Aqui garantimos a chamada com a assinatura exata da sua SP
+            query = text("""
+                CALL sp_reajustar_escala(
+                    :p_id, :p_uni_orig, :p_dia_orig, :p_turno_orig, 
+                    :p_uni_dest, :p_dia_dest, :p_turno_dest
+                )
+            """)
+            
+            connection.execute(query, {
+                "p_id": id_residente,
+                "p_uni_orig": id_unidade_origem,
+                "p_dia_orig": dia_origem,
+                "p_turno_orig": turno_origem,
+                "p_uni_dest": id_unidade_destino,
+                "p_dia_dest": dia_destino,
+                "p_turno_dest": turno_destino
+            })
+            
+            trans.commit()
+            flash("[SUCESSO] Escala reajustada com sucesso!", "success")
+            
+    except Exception as e:
+        msg_erro = "Erro ao reajustar escala."
+        if hasattr(e, 'orig') and hasattr(e.orig, 'pgerror') and e.orig.pgerror:
+            msg_erro = e.orig.pgerror.split('\n')[0].replace('ERROR:', '').strip()
+        else:
+            msg_erro = str(e).split('CONTEXT:')[0].replace('(psycopg2.errors.RaiseException)', '').strip()
+
+        session['reajuste_erro'] = msg_erro
+        session['reajuste_dados'] = {
+            'unidade_atual': int(id_unidade_origem) if id_unidade_origem else None,
+            'dia_atual': dia_origem,
+            'turno_atual': turno_origem,
+            'nova_unidade': int(id_unidade_destino) if id_unidade_destino else None,
+            'novo_dia': dia_destino,
+            'novo_turno': turno_destino
+        }
+
+    return redirect(url_for('profissional_detalhe', id_prof=id_residente))
 
 @app.route('/consultas-avancadas')
 def consultas_avancadas():

@@ -104,8 +104,10 @@ $$;
 
 CREATE OR REPLACE PROCEDURE sp_reajustar_escala(
     IN p_id_residente INT,
+    IN p_id_unidade_origem INT,
     IN p_dia_origem VARCHAR,
     IN p_turno_origem VARCHAR,
+    IN p_id_unidade_destino INT,
     IN p_dia_destino VARCHAR,
     IN p_turno_destino VARCHAR
 )
@@ -113,35 +115,33 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     r RECORD;
+    v_linhas_afetadas INT := 0;
 BEGIN
-    IF p_dia_origem = p_dia_destino AND p_turno_origem = p_turno_destino THEN
-        RAISE EXCEPTION 'Origem e destino não podem ser iguais';
+    -- Evita transação nula
+    IF p_id_unidade_origem = p_id_unidade_destino AND p_dia_origem = p_dia_destino AND p_turno_origem = p_turno_destino THEN
+        RAISE EXCEPTION 'A origem e o destino selecionados são idênticos.';
     END IF;
 
     FOR r IN
-        SELECT id_escala, id_unidade
+        SELECT id_escala
         FROM ESCALA
         WHERE id_residente = p_id_residente
+          AND id_unidade = p_id_unidade_origem
           AND dia_semana = p_dia_origem
           AND turno = p_turno_origem
     LOOP
-        IF EXISTS (
-            SELECT 1
-            FROM ESCALA
-            WHERE id_unidade = r.id_unidade
-              AND id_residente = p_id_residente
-              AND dia_semana = p_dia_destino
-              AND turno = p_turno_destino
-              AND id_escala <> r.id_escala
-        ) THEN
-            RAISE EXCEPTION 'Conflito de escala para o residente % na unidade %', p_id_residente, r.id_unidade;
-        END IF;
+        v_linhas_afetadas := v_linhas_afetadas + 1;
 
         UPDATE ESCALA
-        SET dia_semana = p_dia_destino,
+        SET id_unidade = p_id_unidade_destino,
+            dia_semana = p_dia_destino,
             turno = p_turno_destino
         WHERE id_escala = r.id_escala;
     END LOOP;
+
+    IF v_linhas_afetadas = 0 THEN
+        RAISE EXCEPTION 'Nenhuma escala encontrada na origem (Unidade %, %, %).', p_id_unidade_origem, p_dia_origem, p_turno_origem;
+    END IF;
 END;
 $$;
 

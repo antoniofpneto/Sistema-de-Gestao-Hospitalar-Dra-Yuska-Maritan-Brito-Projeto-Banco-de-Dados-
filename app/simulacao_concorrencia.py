@@ -12,7 +12,7 @@ def simular_agendamento(nome_thread, id_residente, id_preceptor, id_unidade, dia
         try:
             print(f"[{nome_thread}] Solicitando lock para o Residente {id_residente}...")
             
-            # 1. LOCK PESSIMISTA (O erro está ocorrendo nesta linha)
+            # LOCK PESSIMISTA (O erro está ocorrendo nesta linha)
             residente = db.session.query(Residente).filter_by(id_profissional=id_residente).with_for_update().first()
             
             if not residente:
@@ -24,7 +24,7 @@ def simular_agendamento(nome_thread, id_residente, id_preceptor, id_unidade, dia
             
             time.sleep(3)
 
-            # 2. Verificação da regra de negócio
+            # Verificação da regra de negócio
             escala_existente = db.session.query(Escala).filter_by(
                 id_residente=id_residente,
                 dia_semana=dia,
@@ -36,7 +36,7 @@ def simular_agendamento(nome_thread, id_residente, id_preceptor, id_unidade, dia
                 db.session.rollback()
                 return
 
-            # 3. Inserção
+            # Inserção
             nova_escala = Escala(
                 id_unidade=id_unidade,
                 id_residente=id_residente,
@@ -50,7 +50,7 @@ def simular_agendamento(nome_thread, id_residente, id_preceptor, id_unidade, dia
 
         except Exception as e:
             db.session.rollback()
-            # repr(e) exibe o erro exato do SQLAlchemy sem falhas de enconding
+            # repr(e) exibe o erro exato do SQLAlchemy
             print(f"[{nome_thread}] ERRO REAL: {repr(e)}")
 
 if __name__ == "__main__":

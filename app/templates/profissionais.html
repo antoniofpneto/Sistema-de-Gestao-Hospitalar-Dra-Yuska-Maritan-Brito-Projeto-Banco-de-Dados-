@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-4">
+    <h2><i class="bi bi-people-fill"></i> Quadro de Profissionais</h2>
+    <p class="text-muted">Gestão de equipe médica e indicadores de desempenho clínico.</p>
+</div>
+
+<div class="row">
+    <!-- Tabela de Preceptores -->
+    <div class="col-md-5 mb-4">
+        <div class="card shadow-sm border-secondary">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-award"></i> Preceptores (Supervisores)</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">CRM</th>
+                            <th>Nome</th>
+                            <th>Titulação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pr in preceptores %}
+                        <tr>
+                            <td class="ps-3">{{ pr.profissional.crm }}</td>
+                            <td><strong>Dr(a). {{ pr.pessoa.nome }}</strong></td>
+                            <td><span class="badge bg-dark">{{ pr.titulacao }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-center text-muted">Nenhum preceptor cadastrado.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Residentes com a Métrica Calculada -->
+    <div class="col-md-7 mb-4">
+        <div class="card shadow-sm border-success">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-mortarboard"></i> Residentes em Treinamento</h5>
+                <span class="badge bg-light text-success" title="Calculado via func.avg do SQLAlchemy">Métricas ORM</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">CRM</th>
+                            <th>Nome</th>
+                            <th>Ano</th>
+                            <th>Desempenho (Tempo Médio)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- (Objeto Residente, Valor da Media) -->
+                        {% for res, media in residentes_stats %}
+                        <tr>
+                            <td class="ps-3">{{ res.profissional.crm }}</td>
+                            <td><strong>{{ res.pessoa.nome }}</strong></td>
+                            <td><span class="badge bg-success">{{ res.ano_residencia }}</span></td>
+                            <td>
+                                {% if media %}
+                                    <span class="text-primary fw-bold"><i class="bi bi-stopwatch"></i> {{ media }} min / paciente</span>
+                                {% else %}
+                                    <span class="text-muted fst-italic">Sem atendimentos</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted">Nenhum residente cadastrado.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

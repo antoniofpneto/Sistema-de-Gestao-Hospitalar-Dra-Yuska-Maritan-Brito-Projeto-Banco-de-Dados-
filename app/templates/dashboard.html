@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-4">
+    <h2><i class="bi bi-graph-up-arrow"></i> Dashboard Gerencial</h2>
+    <p class="text-muted">Visão geral e Roteiro de Apresentação Acadêmica</p>
+</div>
+
+<!-- Cards Fictícios (Mocks) que substituiremos pelas Views depois -->
+<div class="row mb-5">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary shadow-sm"><div class="card-body"><h5 class="card-title">Pacientes Ativos</h5><h2 class="display-5">124</h2></div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success shadow-sm"><div class="card-body"><h5 class="card-title">Atendimentos Hoje</h5><h2 class="display-5">38</h2></div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning shadow-sm"><div class="card-body"><h5 class="card-title">Leitos Ocupados</h5><h2 class="display-5">85%</h2></div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger shadow-sm"><div class="card-body"><h5 class="card-title">Plantões Ativos</h5><h2 class="display-5">12</h2></div></div>
+    </div>
+</div>
+
+<!-- ROTEIRO DE APRESENTAÇÃO - ETAPA 2 -->
+<div class="card border-dark shadow-sm">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-play-circle"></i> Roteiro de Apresentação: Requisito 4 (ORM)</h5>
+        <span class="badge bg-light text-dark">Etapa 2</span>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">Utilize os atalhos abaixo para demonstrar a reimplementação das 6 operações da Etapa 1 utilizando a DSL do SQLAlchemy.</p>
+        
+        <div class="list-group">
+            <!-- Operação 1 -->
+            <a href="/atendimentos" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 text-primary">1. Inserir Atendimento (Validação de Chaves)</h6>
+                    <small>Tenta inserir um atendimento e valida a existência das entidades relacionadas via ORM.</small>
+                </div>
+                <button class="btn btn-outline-primary btn-sm rounded-pill">Ir para Atendimentos</button>
+            </a>
+
+            <!-- Operação 2 e 4 (Prontuário do Paciente) -->
+            <a href="/paciente/{{ id_pac }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 text-success">2 e 4. Atualizar Paciente & Listar Histórico</h6>
+                    <small>Edição de Convênio (Update) e Linha do Tempo de Atendimentos (Query Relacional).</small>
+                </div>
+                <button class="btn btn-outline-success btn-sm rounded-pill">Abrir Prontuário</button>
+            </a>
+
+            <!-- Operação 3 e 5 (Procedimentos) -->
+            <a href="{{ url_for('listar_atendimentos') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 text-warning text-dark">3 e 5. Listar Procedimentos & Remover (Regra de Faturamento)</h6>
+                    <small>Lista procedimentos usando joins implícitos e testa o bloqueio de exclusão em procedimentos faturados.</small>
+                </div>
+                <button class="btn btn-outline-warning btn-sm rounded-pill">Ver Atendimentos</button>
+            </a>
+
+            <!-- Operação 6 (Média do Residente) -->
+            <a href="{{ url_for('listar_profissionais') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 text-info text-dark">6. Cálculo de Tempo Médio (Agregação no ORM)</h6>
+                    <small>Utiliza <code>func.avg</code> do SQLAlchemy para calcular a média de duração dos atendimentos do residente.</small>
+                </div>
+                <button class="btn btn-outline-info btn-sm rounded-pill">Ver Residentes</button>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

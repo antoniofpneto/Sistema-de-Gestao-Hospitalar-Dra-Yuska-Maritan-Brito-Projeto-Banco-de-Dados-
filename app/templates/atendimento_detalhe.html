@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('listar_atendimentos') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Voltar para Central
+    </a>
+</div>
+
+<div class="row">
+    <!-- Card de Resumo do Atendimento -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Ficha do Atendimento</h5>
+            </div>
+            <div class="card-body">
+                <h2 class="text-center text-info mb-4">#{{ atendimento.id_atendimento }}</h2>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Paciente:</strong> <br>{{ atendimento.paciente.pessoa.nome }}</li>
+                    <li class="list-group-item"><strong>Unidade:</strong> <br>{{ atendimento.unidade.nome }}</li>
+                    <li class="list-group-item"><strong>Residente:</strong> <br>{{ atendimento.residente.pessoa.nome }}</li>
+                    <li class="list-group-item"><strong>Data:</strong> <br>{{ atendimento.data_hora.strftime('%d/%m/%Y %H:%M') }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card de Procedimentos (Req. 3 e 5) -->
+    <div class="col-md-8 mb-4">
+        <div class="card shadow-sm border-primary">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-bandaid"></i> Procedimentos Realizados</h5>
+                <span class="badge bg-light text-dark" title="Requisitos 3 e 5">ORM Joins & Regras</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Cód.</th>
+                            <th>Procedimento</th>
+                            <th>Qtd</th>
+                            <th>Status Financeiro</th>
+                            <th class="text-end pe-3">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- REQUISITO 3: Navegação do Relacionamento no ORM -->
+                        {% for pr in atendimento.procedimentos_realizados %}
+                        <tr>
+                            <td class="ps-3"><small class="text-muted">{{ pr.procedimento_rel.codigo }}</small></td>
+                            <!-- O nome vem da tabela Procedimento via Join Implícito! -->
+                            <td><strong>{{ pr.procedimento_rel.nome }}</strong></td>
+                            <td>{{ pr.quantidade }}x</td>
+                            
+                            <!-- Exibição Visual do Faturamento -->
+                            <td>
+                                {% if pr.faturado %}
+                                    <span class="badge bg-success"><i class="bi bi-currency-dollar"></i> Faturado</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-clock-history"></i> Pendente</span>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- REQUISITO 5: Botão de Ação -->
+                            <td class="text-end pe-3">
+                                <form action="/atendimento/{{ atendimento.id_atendimento }}/procedimento/{{ pr.id_procedimento }}/deletar" method="POST">
+                                    <!-- A "Mágica": Desabilita o botão se faturado for True -->
+                                    <button type="submit" class="btn btn-sm btn-danger" 
+                                        {% if pr.faturado %} disabled title="Não é possível apagar procedimentos faturados" {% endif %}
+                                        onclick="return confirm('Tem certeza que deseja apagar este procedimento do registro?')">
+                                        <i class="bi bi-trash"></i> Excluir
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">Nenhum procedimento registrado neste atendimento.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,7 +1,7 @@
 # app.py
 import os
 from flask import Flask, render_template, request, redirect, url_for
-from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade
+from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade, Procedimento
 from dotenv import load_dotenv, find_dotenv
 from sqlalchemy import func, text
 from datetime import date, datetime
@@ -176,6 +176,8 @@ def inserir_atendimento():
     data_hora_str = request.form.get('data_hora')
     duracao_minutos = request.form.get('duracao_minutos')
 
+    procedimentos_json = request.form.get('procedimentos_json', '[]')
+
     # Validação básica
     if not (id_paciente and id_residente and id_preceptor and id_unidade and data_hora_str and duracao_minutos):
         return "Erro: Preencha todos os campos.", 400
@@ -191,7 +193,7 @@ def inserir_atendimento():
             "p_id_unidade": int(id_unidade),
             "p_data_hora": data_hora,
             "p_duracao": int(duracao_minutos),
-            "p_procedimentos": '[]' # JSON vindo do Front
+            "p_procedimentos": procedimentos_json # JSON vindo do Front
         }
 
         # Chamamos a Stored Procedure passando as variáveis com segurança (bind parameters)
@@ -222,13 +224,15 @@ def listar_atendimentos():
     residentes = Residente.query.all()
     preceptores = Preceptor.query.all()
     unidades = Unidade.query.all()
+    procedimentos = Procedimento.query.all()
     
     return render_template('atendimentos.html', 
                            atendimentos=atendimentos,
                            pacientes=pacientes,
                            residentes=residentes,
                            preceptores=preceptores,
-                           unidades=unidades)
+                           unidades=unidades,
+                           procedimentos=procedimentos)
 
 
 # Consulta 02 - Listar todos os atendimentos de um paciente específico

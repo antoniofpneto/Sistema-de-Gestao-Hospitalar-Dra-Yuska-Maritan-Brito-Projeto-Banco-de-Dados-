@@ -66,7 +66,7 @@
                             <select class="form-select" name="id_paciente" required>
                                 <option value="" disabled selected>Selecione o paciente...</option>
                                 {% for p in pacientes %}
-                                    <option value="{{ p.id_pessoa }}">{{ p.pessoa.nome }} (CPF: {{ p.pessoa.cpf }})</option>
+                                    <option value="{{ p.id_pessoa }}">{{ p.pessoa.nome }} (CPF: {{ p.pessoa.cpf | cpf}})</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -112,7 +112,20 @@
                             <label class="form-label">Duração (min)</label>
                             <input type="number" class="form-control" name="duracao_minutos" min="1" required>
                         </div>
+
                     </div>
+                    <h6 class="text-muted border-bottom pb-2 mb-3 mt-4">Procedimentos Realizados (Opcional)</h6>
+                    
+                    <!-- Campo oculto que guarda o JSON gerado pelo JavaScript -->
+                    <input type="hidden" name="procedimentos_json" id="procedimentos_json" value="[]">
+                    
+                    <div id="container-procedimentos">
+                        <!-- O JavaScript injeta as linhas de procedimentos aqui -->
+                    </div>
+                    
+                    <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="adicionarLinhaProcedimento()">
+                        <i class="bi bi-plus-circle"></i> Adicionar Procedimento
+                    </button>
 
                 </div>
                 <div class="modal-footer bg-light">
@@ -123,4 +136,63 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Função para criar uma nova linha de campos na tela
+    function adicionarLinhaProcedimento() {
+        const container = document.getElementById('container-procedimentos');
+        
+        const linha = document.createElement('div');
+        linha.className = 'row mb-2 linha-procedimento';
+        linha.innerHTML = `
+            <div class="col-md-5">
+                <select class="form-select select-proc" required>
+                    <option value="" disabled selected>Escolha o procedimento...</option>
+                    {% for proc in procedimentos %}
+                        <option value="{{ proc.id_procedimento }}">{{ proc.codigo }} - {{ proc.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="number" class="form-control input-qtd" placeholder="Qtd" min="1" value="1" required>
+            </div>
+            <div class="col-md-3">
+                <input type="number" class="form-control input-tempo" placeholder="Tempo (min)" min="1" required>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-outline-danger w-100" onclick="this.closest('.linha-procedimento').remove()">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(linha);
+    }
+
+    // Interceptar o envio do formulário para empacotar o JSON
+    document.querySelector('form[action="/atendimento/novo"]').addEventListener('submit', function(event) {
+        const linhas = document.querySelectorAll('.linha-procedimento');
+        const listaProcedimentos = [];
+
+        // Varre cada linha que o usuário adicionou
+        linhas.forEach(linha => {
+            const idProc = linha.querySelector('.select-proc').value;
+            const qtd = linha.querySelector('.input-qtd').value;
+            const tempo = linha.querySelector('.input-tempo').value;
+
+            if (idProc && qtd && tempo) {
+                // Monta o objeto no exato formato que a Stored Procedure espera
+                listaProcedimentos.push({
+                    id_procedimento: parseInt(idProc),
+                    quantidade: parseInt(qtd),
+                    tempo_real_minutos: parseInt(tempo),
+                    observacao: ""
+                });
+            }
+        });
+
+        // Transforma o array em String JSON e injeta no campo oculto
+        document.getElementById('procedimentos_json').value = JSON.stringify(listaProcedimentos);
+    });
+</script>
+
 {% endblock %}

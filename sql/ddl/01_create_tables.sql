@@ -122,8 +122,6 @@ CREATE TABLE AUDITORIA_ATENDIMENTO (
     dados_antigos jsonb,
     dados_novos jsonb,
     -- Restrições:
-    CONSTRAINT fk_auditoria_atendimento FOREIGN KEY (id_atendimento) REFERENCES ATENDIMENTO(id_atendimento)
-        ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT chk_operacao CHECK (operacao IN ('Insercao', 'Atualizacao', 'Exclusao'))
 );
 

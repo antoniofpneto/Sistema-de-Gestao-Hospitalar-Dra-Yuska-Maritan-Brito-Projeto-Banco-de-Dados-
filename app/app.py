@@ -1,7 +1,7 @@
 # app.py
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade, Procedimento, Profissional, Escala, EspecialidadeProfissional
+from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade, Procedimento, Profissional, Escala, EspecialidadeProfissional, AuditoriaAtendimento
 import consultas_avancadas as ca
 from dotenv import load_dotenv, find_dotenv
 from sqlalchemy import func, text, or_
@@ -483,6 +483,62 @@ def reajustar_escala():
         }
 
     return redirect(url_for('profissional_detalhe', id_prof=id_residente))
+
+@app.route('/auditoria/atendimentos')
+def auditoria_atendimentos():
+    # Supondo que você mapeie a model AuditoriaAtendimento 
+    # ou faça via SQL puro / ORM
+    auditorias = AuditoriaAtendimento.query.order_by(AuditoriaAtendimento.data_hora.desc()).all()
+    
+    return render_template('auditoria_atendimentos.html', auditorias=auditorias)
+
+@app.route('/atendimento/editar/<int:id_atendimento>', methods=['POST'])
+def editar_atendimento(id_atendimento):
+    atendimento = Atendimento.query.get_or_404(id_atendimento)
+    
+    try:
+        from datetime import datetime
+        
+        # Captura e atualiza a data/hora e a duração
+        nova_data_hora = request.form.get('data_hora')
+        atendimento.data_hora = datetime.strptime(nova_data_hora, '%Y-%m-%dT%H:%M')
+        atendimento.duracao_minutos = int(request.form.get('duracao_minutos'))
+        
+        # Captura e atualiza as chaves estrangeiras vindas dos 'selects' do modal
+        atendimento.id_paciente = int(request.form.get('id_paciente'))
+        atendimento.id_residente = int(request.form.get('id_residente'))
+        atendimento.id_preceptor = int(request.form.get('id_preceptor'))
+        atendimento.id_unidade = int(request.form.get('id_unidade'))
+        
+        # O commit dispara o UPDATE na tabela, ativando automaticamente a trigger de auditoria
+        db.session.commit()
+        flash("Atendimento atualizado com sucesso! Verifique a auditoria.", "success")
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erro ao atualizar atendimento: {e}", "danger")
+        
+    return redirect(url_for('listar_atendimentos'))
+
+
+@app.route('/atendimento/excluir/<int:id_atendimento>', methods=['POST'])
+def excluir_atendimento(id_atendimento):
+    atendimento = Atendimento.query.get_or_404(id_atendimento)
+    
+    try:
+        # Remove dependências diretas se houver (ex: procedimentos realizados vinculados)
+        # db.session.query(ProcedimentoRealizado).filter_by(id_atendimento=id_atendimento).delete()
+        
+        db.session.delete(atendimento)
+        
+        # O commit dispara o DELETE na tabela, ativando automaticamente a trigger de auditoria (DELETE)
+        db.session.commit()
+        flash("Atendimento excluído com sucesso! Verifique a auditoria.", "warning")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erro ao excluir atendimento (pode possuir procedimentos vinculados): {e}", "danger")
+        
+    return redirect(url_for('listar_atendimentos'))
 
 @app.route('/consultas-avancadas')
 def consultas_avancadas():

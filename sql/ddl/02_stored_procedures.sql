@@ -169,59 +169,55 @@ $$;
 
 -- Função do trigger de auditoria de atendimento
 CREATE OR REPLACE FUNCTION trg_audita_atendimento_fn()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
+RETURNS TRIGGER AS $$
 DECLARE
-    v_usuario VARCHAR(50) := current_user;
+    v_antigo JSONB := NULL;
+    v_novo JSONB := NULL;
 BEGIN
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO AUDITORIA_ATENDIMENTO (
-            id_atendimento,
-            operacao,
-            usuario,
-            dados_antigos,
-            dados_novos
-        ) VALUES (
-            NEW.id_atendimento,
-            'Insercao',
-            v_usuario,
-            NULL,
-            row_to_json(NEW)::jsonb
-        );
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO AUDITORIA_ATENDIMENTO (
-            id_atendimento,
-            operacao,
-            usuario,
-            dados_antigos,
-            dados_novos
-        ) VALUES (
-            NEW.id_atendimento,
-            'Atualizacao',
-            v_usuario,
-            row_to_json(OLD)::jsonb,
-            row_to_json(NEW)::jsonb
-        );
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO AUDITORIA_ATENDIMENTO (
-            id_atendimento,
-            operacao,
-            usuario,
-            dados_antigos,
-            dados_novos
-        ) VALUES (
-            OLD.id_atendimento,
-            'Exclusao',
-            v_usuario,
-            row_to_json(OLD)::jsonb,
-            NULL
+    -- Monta o objeto JSON formatado para os dados ANTIGOS (usado em UPDATE e DELETE)
+    IF (TG_OP = 'DELETE' OR TG_OP = 'UPDATE') THEN
+        v_antigo := jsonb_build_object(
+            'Data e Hora', OLD.data_hora,
+            'Duração (Min)', OLD.duracao_minutos,
+            'Unidade', (SELECT nome FROM UNIDADE WHERE id_unidade = OLD.id_unidade),
+            'Paciente', (SELECT nome FROM PESSOA WHERE id_pessoa = OLD.id_paciente),
+            'Residente', (SELECT nome FROM PESSOA WHERE id_pessoa = OLD.id_residente),
+            'Preceptor', (SELECT nome FROM PESSOA WHERE id_pessoa = OLD.id_preceptor)
         );
     END IF;
 
+    -- Monta o objeto JSON formatado para os dados NOVOS (usado em INSERT e UPDATE)
+    IF (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') THEN
+        v_novo := jsonb_build_object(
+            'Data e Hora', NEW.data_hora,
+            'Duração (Min)', NEW.duracao_minutos,
+            'Unidade', (SELECT nome FROM UNIDADE WHERE id_unidade = NEW.id_unidade),
+            'Paciente', (SELECT nome FROM PESSOA WHERE id_pessoa = NEW.id_paciente),
+            'Residente', (SELECT nome FROM PESSOA WHERE id_pessoa = NEW.id_residente),
+            'Preceptor', (SELECT nome FROM PESSOA WHERE id_pessoa = NEW.id_preceptor)
+        );
+    END IF;
+
+    -- Executa a inserção na tabela de Auditoria dependendo da operação
+    IF (TG_OP = 'DELETE') THEN
+        INSERT INTO AUDITORIA_ATENDIMENTO (id_atendimento, operacao, usuario, dados_antigos, dados_novos)
+        VALUES (OLD.id_atendimento, 'Exclusao', current_user, v_antigo, NULL);
+        RETURN OLD;
+        
+    ELSIF (TG_OP = 'UPDATE') THEN
+        INSERT INTO AUDITORIA_ATENDIMENTO (id_atendimento, operacao, usuario, dados_antigos, dados_novos)
+        VALUES (NEW.id_atendimento, 'Atualizacao', current_user, v_antigo, v_novo);
+        RETURN NEW;
+        
+    ELSIF (TG_OP = 'INSERT') THEN
+        INSERT INTO AUDITORIA_ATENDIMENTO (id_atendimento, operacao, usuario, dados_antigos, dados_novos)
+        VALUES (NEW.id_atendimento, 'Insercao', current_user, NULL, v_novo);
+        RETURN NEW;
+    END IF;
+    
     RETURN NULL;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 -- Função do trigger de atualização de média de procedimentos
 CREATE OR REPLACE FUNCTION trg_atualiza_media_procedimentos_fn()

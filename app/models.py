@@ -32,8 +32,8 @@ class Paciente(db.Model):
     grupo_sanguineo = db.Column(db.String(3))
     
     # Relacionamentos para o Python
-    atendimentos = db.relationship('Atendimento', backref='paciente', overlaps="atendimentos,paciente_rel")
-    internacoes = db.relationship('Internacao', backref='paciente')
+    atendimentos = db.relationship('Atendimento', backref='paciente', overlaps="atendimentos,paciente_rel", cascade="all, delete-orphan")
+    internacoes = db.relationship('Internacao', backref='paciente', cascade="all, delete-orphan")
     alergias = db.relationship('AlergiaPaciente', backref='paciente', cascade="all, delete-orphan")
 
     # restrição do tipo sanguíneo
@@ -156,7 +156,6 @@ class Atendimento(db.Model):
 
     # Relações de identidades para o Python
     procedimentos_realizados = db.relationship('ProcedimentoRealizado', backref='atendimento_rel', cascade="all, delete-orphan")
-    auditorias = db.relationship('AuditoriaAtendimento', backref='atendimento', cascade="all, delete-orphan")
 
     __table_args__ = (
         db.CheckConstraint("duracao_minutos > 0", name = 'chk_duracao'),
@@ -167,7 +166,7 @@ class AuditoriaAtendimento(db.Model):
     __tablename__ = 'auditoria_atendimento'
     
     id_auditoria = db.Column(db.Integer, primary_key=True)
-    id_atendimento = db.Column(db.Integer, db.ForeignKey('atendimento.id_atendimento', onupdate='CASCADE'), nullable=False)
+    id_atendimento = db.Column(db.Integer, nullable=False)
     data_hora = db.Column(db.TIMESTAMP, nullable=False, default=db.func.current_timestamp())
     usuario = db.Column(db.String(50), nullable=False)
     operacao = db.Column(db.String(20), nullable=False)  # Inserção, atualização ou exclusão

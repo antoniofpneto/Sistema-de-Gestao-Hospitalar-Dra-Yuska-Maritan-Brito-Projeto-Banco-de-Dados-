@@ -18,6 +18,9 @@
                 <p><strong>Data de Nasc.:</strong> {{ paciente.pessoa.data_nascimento.strftime('%d/%m/%Y') }}</p>
                 <p><strong>Telefone:</strong> {{ paciente.pessoa.telefone | telefone }}</p>
                 <p><strong>Flamenguista:</strong> <span class="badge {{ 'bg-success' if paciente.pessoa.is_flamengo else 'bg-danger' }}">{{ 'Sim' if paciente.pessoa.is_flamengo else 'Não' }}</span></p>
+                <a href="/paciente/editar/{{ paciente.pessoa.id_pessoa }}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-pencil-fill"></i> Editar
+                </a>
             </div>
         </div>
     </div>

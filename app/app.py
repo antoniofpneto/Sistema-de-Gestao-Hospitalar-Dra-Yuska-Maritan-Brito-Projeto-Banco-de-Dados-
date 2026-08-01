@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado
 from dotenv import load_dotenv
 from sqlalchemy import func
+from datetime import date, datetime
 
 # carrregar as variáveis de ambiente para a memória
 load_dotenv()
@@ -69,7 +70,7 @@ def deletar_paciente(id):
     db.session.delete(pessoa)
     db.session.commit()
     
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('listar_pacientes'))
 
 @app.route('/paciente/editar/<int:id>', methods=['GET', 'POST'])
 def editar_paciente(id):
@@ -80,21 +81,29 @@ def editar_paciente(id):
     if request.method == 'POST':
         # Se o usuário enviou o formulário com alterações, atualiza os objetos
         pessoa.nome = request.form.get('nome')
+        pessoa.cpf = request.form.get('cpf')
         pessoa.telefone = request.form.get('telefone')
-        # ... atualize outros campos que desejar
+
+        # Converte a string da data para o tipo Date do Python
+        data_nasc_str = request.form.get('data_nascimento')
+        if data_nasc_str:
+            paciente.pessoa.data_nascimento = datetime.strptime(data_nasc_str, '%Y-%m-%d').date()
+
+        # Boolean para o checkbox do Flamengo
+        paciente.pessoa.is_flamengo = True if request.form.get('is_flamengo') else False
+
+        # Atualiza os dados da tabela PACIENTE
+        paciente.num_convenio = request.form.get('num_convenio') or None
+        paciente.grupo_sanguineo = request.form.get('grupo_sanguineo')
+
+        # Persiste no banco de dados com segurança transacional
+        db.session.commit()
         
         db.session.commit() # Salva as edições no banco
-        return redirect(url_for('dashboard'))
 
-    # Se for GET, apenas renderiza uma página simples de edição 
-    # (Você pode criar um editar_paciente.html depois similar ao cadastro)
-    return f"""
-    <form method="POST">
-        Nome: <input type="text" name="nome" value="{pessoa.nome}"><br>
-        Telefone: <input type="text" name="telefone" value="{pessoa.telefone}"><br>
-        <button type="submit">Atualizar</button>
-    </form>
-    """
+        return redirect(url_for('detalhe_paciente', id_pessoa=id))
+
+    return render_template('paciente_editar.html', paciente=paciente)
 
 @app.route('/paciente/novo', methods=['POST'])
 def novo_paciente():

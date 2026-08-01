@@ -28,8 +28,8 @@
                 <tr>
                     <td>{{ p.id_pessoa }}</td>
                     <td>{{ p.pessoa.nome }}</td>
-                    <td>{{ p.pessoa.cpf }}</td>
-                    <td>{{ p.pessoa.telefone }}</td>
+                    <td>{{ p.pessoa.cpf | cpf}}</td>
+                    <td>{{ p.pessoa.telefone | telefone}}</td>
                     <td>
                         <!-- Renderização visual do booleano -->
                         {% if p.pessoa.is_flamengo %}
@@ -44,14 +44,46 @@
                             <i class="bi bi-eye"></i> Detalhes
                         </a>
 
-                        <a href="{{ url_for('editar_paciente', id=p.id_pessoa) }}" class="btn btn-sm btn-primary">
-                            <i class="bi bi-pencil"></i> Editar
+                        <a href="/paciente/editar/{{ p.id_pessoa }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-pencil-fill"></i> Editar
                         </a>
 
                         <form action="{{ url_for('deletar_paciente', id=p.id_pessoa) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Excluir paciente permanentemente?')">
+                            <!-- Botão que aciona o Modal do Bootstrap -->
+                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalExcluir{{ p.id_pessoa }}">
                                 <i class="bi bi-trash"></i> Excluir
                             </button>
+
+                            <!-- Modal de Exclusão Exclusivo para este Paciente -->
+                            <div class="modal fade" id="modalExcluir{{ p.id_pessoa }}" tabindex="-1" aria-labelledby="modalLabel{{ p.id_pessoa }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-danger">
+                                        
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title" id="modalLabel{{ p.id_pessoa }}">
+                                                <i class="bi bi-exclamation-triangle-fill"></i> Confirmar Exclusão
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        
+                                        <div class="modal-body text-start text-dark text-wrap">
+                                            <p>Tem certeza que deseja excluir permanentemente o paciente <strong class="text-danger">{{ p.pessoa.nome }}</strong>?</p>
+                                            <div class="alert alert-warning mb-0 small">
+                                                <strong>Atenção:</strong> Como configuramos <code>ON DELETE CASCADE</code> no banco de dados, esta ação também apagará todo o histórico de internações, alergias e procedimentos vinculados a este paciente.
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <!-- O Form de exclusão real fica escondido aqui dentro do modal -->
+                                            <form action="{{ url_for('deletar_paciente', id=p.id_pessoa) }}" method="POST" class="d-inline">
+                                                <button type="submit" class="btn btn-danger">Sim, Excluir Paciente</button>
+                                            </form>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                            </div>
                         </form>
                     </td>
                 </tr>

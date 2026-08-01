@@ -49,17 +49,52 @@ app.jinja_env.filters['telefone'] = format_telefone
 
 @app.route('/')
 def dashboard():
-    # Buscamos o primeiro registro de cada entidade para montar os links da apresentação dinamicamente
+    # Buscamos o primeiro registro de cada entidade
     primeiro_paciente = Paciente.query.first()
     primeiro_residente = Residente.query.first()
     primeiro_atendimento = Atendimento.query.first()
     
-    # Prevenção: se o banco estiver vazio, não quebra a interface
+    # Prevenção contra banco vazio
     id_pac = primeiro_paciente.id_pessoa if primeiro_paciente else 0
     id_res = primeiro_residente.id_profissional if primeiro_residente else 0
     id_atend = primeiro_atendimento.id_atendimento if primeiro_atendimento else 0
     
-    return render_template('dashboard.html', id_pac=id_pac, id_res=id_res, id_atend=id_atend)
+    # Dados do Gráfico
+    unidades_nomes = []
+    unidades_tempos = []
+    
+    try:
+        with db.engine.begin() as connection:
+            # Cria um cursor dinâmico
+            connection.execute(text("BEGIN;"))
+            
+            # Chama a procedure passando um nome de cursor
+            connection.execute(text("CALL sp_calcular_tempo_medio_espera('resultado_cursor');"))
+            
+            # Recupera os dados de dentro do cursor e converte em dicionários mapeados
+            cursor_result = connection.execute(text("FETCH ALL FROM resultado_cursor;"))
+            resultados = cursor_result.mappings().all()
+            
+            # Fecha a transação do cursor
+            connection.execute(text("CLOSE resultado_cursor; COMMIT;"))
+        
+        for linha in resultados:
+            # Eixo X: Rótulos (Labels)
+            unidades_nomes.append(linha['nome_unidade'])
+            # Eixo Y: Dados (Data)
+            unidades_tempos.append(float(linha['tempo_medio_espera_minutos']))
+            
+    except Exception as e:
+        print(f"[Aviso] Falha ao executar a SP sp_calcular_tempo_medio_espera: {e}")
+    
+    return render_template(
+        'dashboard.html', 
+        id_pac=id_pac, 
+        id_res=id_res, 
+        id_atend=id_atend,
+        unidades_nomes=unidades_nomes,
+        unidades_tempos=unidades_tempos
+    )
 
 
 @app.route('/paciente/deletar/<int:id>', methods=['POST'])

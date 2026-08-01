@@ -100,17 +100,17 @@ INSERT INTO UNIDADE (id_unidade, nome, tipo, capacidade_leitos) VALUES
 -- =========================================================
 -- 7. ATENDIMENTO (10 atendimentos)
 -- =========================================================
-INSERT INTO ATENDIMENTO (id_atendimento, id_paciente, id_residente, id_preceptor, data_hora, duracao_minutos) VALUES
-(1,  1, 6,  11, '2026-06-01 08:30:00', 30),
-(2,  2, 7,  12, '2026-06-01 09:15:00', 20),
-(3,  3, 8,  13, '2026-06-02 10:00:00', 45),
-(4,  4, 9,  14, '2026-06-02 11:30:00', 25),
-(5,  5, 10, 15, '2026-06-03 14:00:00', 60),
-(6,  1, 7,  11, '2026-06-03 15:20:00', 15),
-(7,  2, 8,  12, '2026-06-04 08:00:00', 40),
-(8,  3, 9,  13, '2026-06-04 09:45:00', 35),
-(9,  4, 10, 14, '2026-06-05 13:10:00', 50),
-(10, 5, 6,  15, '2026-06-05 16:00:00', 20);
+INSERT INTO ATENDIMENTO (id_atendimento, id_paciente, id_residente, id_preceptor, id_unidade, data_hora, duracao_minutos) VALUES
+(1,  1, 6,  11, 1, '2026-06-01 08:30:00', 30),
+(2,  2, 7,  12, 2, '2026-06-01 09:15:00', 20),
+(3,  3, 8,  13, 3, '2026-06-02 10:00:00', 45),
+(4,  4, 9,  14, 1, '2026-06-02 11:30:00', 25),
+(5,  5, 10, 15, 2, '2026-06-03 14:00:00', 60),
+(6,  1, 7,  11, 3, '2026-06-03 15:20:00', 15),
+(7,  2, 8,  12, 1, '2026-06-04 08:00:00', 40),
+(8,  3, 9,  13, 2, '2026-06-04 09:45:00', 35),
+(9,  4, 10, 14, 3, '2026-06-05 13:10:00', 50),
+(10, 5, 6,  15, 1, '2026-06-05 16:00:00', 20);
 
 -- =========================================================
 -- 8. PROCEDIMENTO (catálogo de procedimentos)
@@ -129,17 +129,22 @@ INSERT INTO PROCEDIMENTO (id_procedimento, codigo, nome, tempo_medio_minutos, ni
 -- 9. PROCEDIMENTO_REALIZADO (10 registros, PK composta
 --    id_atendimento + id_procedimento)
 -- =========================================================
-INSERT INTO PROCEDIMENTO_REALIZADO (id_atendimento, id_procedimento, quantidade, tempo_real_minutos, observacao, faturado) VALUES
-(1,  1, 1, 22, 'Sem intercorrencias',                       TRUE),
-(2,  2, 1, 8,  NULL,                                        TRUE),
-(3,  5, 1, 28, 'Paciente estavel durante o procedimento',  FALSE),
-(4,  3, 2, 18, NULL,                                        TRUE),
-(5,  6, 1, 45, 'Procedimento de alta complexidade',        FALSE),
-(6,  7, 1, 12, NULL,                                        TRUE),
-(7,  4, 1, 33, 'Curativo trocado',                          TRUE),
-(8,  2, 1, 9,  NULL,                                        TRUE),
-(9,  8, 1, 40, 'Amostra enviada para laboratorio',         FALSE),
-(10, 1, 1, 18, NULL,                                        TRUE);
+INSERT INTO PROCEDIMENTO_REALIZADO (id_atendimento, id_procedimento, quantidade, tempo_real_minutos, data_hora_inicio, observacao, faturado) VALUES
+(1,  1, 1, 22, '2026-06-01 08:30:00', 'Sem intercorrencias',                       TRUE),
+(2,  2, 1, 8,  '2026-06-01 09:15:00', NULL,                                        TRUE),
+(3,  5, 1, 28, '2026-06-02 10:00:00', 'Paciente estavel durante o procedimento',  FALSE),
+(4,  3, 2, 18, '2026-06-02 11:30:00', NULL,                                        TRUE),
+(5,  6, 1, 45, '2026-06-03 14:00:00', 'Procedimento de alta complexidade',        FALSE),
+(6,  7, 1, 12, '2026-06-03 15:20:00', NULL,                                        TRUE),
+(7,  4, 1, 33, '2026-06-04 08:00:00', 'Curativo trocado',                          TRUE),
+(8,  2, 1, 9,  '2026-06-04 09:45:00', NULL,                                        TRUE),
+(9,  8, 1, 40, '2026-06-05 13:10:00', 'Amostra enviada para laboratorio',         FALSE),
+(10, 1, 1, 18, '2026-06-05 16:00:00', NULL,                                        TRUE);
+
+INSERT INTO AUDITORIA_ATENDIMENTO (id_atendimento, operacao, usuario, dados_antigos, dados_novos) VALUES
+(1, 'Insercao', 'admin', jsonb_build_object('status', 'novo'), jsonb_build_object('status', 'cadastrado')),
+(2, 'Insercao', 'admin', jsonb_build_object('status', 'novo'), jsonb_build_object('status', 'cadastrado')),
+(3, 'Atualizacao', 'admin', jsonb_build_object('duracao_minutos', 40), jsonb_build_object('duracao_minutos', 45));
 
 INSERT INTO ESCALA (id_unidade, id_residente, id_preceptor, dia_semana, turno) 
 VALUES
@@ -157,11 +162,11 @@ SELECT setval(pg_get_serial_sequence('ATENDIMENTO', 'id_atendimento'), (SELECT M
 SELECT setval(pg_get_serial_sequence('PROCEDIMENTO', 'id_procedimento'), (SELECT MAX(id_procedimento) FROM PROCEDIMENTO));
 
 -- Atendimentos extras para que apareça na consulta de >5 atendimentos
-INSERT INTO ATENDIMENTO (data_hora, duracao_minutos, id_paciente, id_residente, id_preceptor) 
+INSERT INTO ATENDIMENTO (data_hora, duracao_minutos, id_paciente, id_residente, id_preceptor, id_unidade) 
 VALUES
-('2026-05-01 08:00:00', 30, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1)),
-('2026-05-05 09:30:00', 45, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1)),
-('2026-05-10 10:15:00', 20, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1)),
-('2026-05-15 14:00:00', 60, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1)),
-('2026-05-20 15:30:00', 15, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1)),
-('2026-05-25 11:00:00', 40, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1));
+('2026-05-01 08:00:00', 30, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 1),
+('2026-05-05 09:30:00', 45, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 2),
+('2026-05-10 10:15:00', 20, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 3),
+('2026-05-15 14:00:00', 60, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 1),
+('2026-05-20 15:30:00', 15, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 2),
+('2026-05-25 11:00:00', 40, (SELECT id_pessoa FROM PACIENTE LIMIT 1), (SELECT id_profissional FROM RESIDENTE LIMIT 1), (SELECT id_profissional FROM PRECEPTOR LIMIT 1), 3);

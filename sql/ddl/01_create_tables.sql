@@ -1,3 +1,20 @@
+-- 00. Remoção das tabelas existentes (Obviamente, respeitando a ordem baseada nas chaves estrangeiras)
+DROP TABLE IF EXISTS HISTORICO_PAPEL CASCADE;
+DROP TABLE IF EXISTS INTERNACAO CASCADE;
+DROP TABLE IF EXISTS ESCALA CASCADE;
+DROP TABLE IF EXISTS PROCEDIMENTO_REALIZADO CASCADE;
+DROP TABLE IF EXISTS PROCEDIMENTO CASCADE;
+DROP TABLE IF EXISTS AUDITORIA_ATENDIMENTO CASCADE;
+DROP TABLE IF EXISTS ATENDIMENTO CASCADE;
+DROP TABLE IF EXISTS UNIDADE CASCADE;
+DROP TABLE IF EXISTS RESIDENTE CASCADE;
+DROP TABLE IF EXISTS PRECEPTOR CASCADE;
+DROP TABLE IF EXISTS ESPECIALIDADE_PROFISSIONAL CASCADE;
+DROP TABLE IF EXISTS PROFISSIONAL CASCADE;
+DROP TABLE IF EXISTS ALERGIA_PACIENTE CASCADE;
+DROP TABLE IF EXISTS PACIENTE CASCADE;
+DROP TABLE IF EXISTS PESSOA CASCADE;
+
 -- 01. Script para criar as tabelas do banco de dados do sistema de gestão hospitalar.
 
 -- 00. Remoção das tabelas caso já existam (Ordem correta para evitar erros de chave estrangeira)
@@ -112,6 +129,7 @@ CREATE TABLE ATENDIMENTO (
     id_paciente INT NOT NULL, -- Representa a relação com a tabela PACIENTE, paciente recebe atendimento
     id_residente INT NOT NULL, -- Representa a relação com a tabela RESIDENTE, residente realiza o atendimento
     id_preceptor INT NOT NULL, -- Representa a relação com a tabela PRECEPTOR, preceptor supervisiona o atendimento
+    id_unidade INT NOT NULL,
     data_hora TIMESTAMP NOT NULL,
     duracao_minutos INT NOT NULL,
     -- Restrições:
@@ -121,8 +139,25 @@ CREATE TABLE ATENDIMENTO (
         ON UPDATE CASCADE,
     CONSTRAINT fk_atendimento_preceptor FOREIGN KEY (id_preceptor) REFERENCES PRECEPTOR(id_profissional)
         ON UPDATE CASCADE,
+    CONSTRAINT fk_atendimento_unidade FOREIGN KEY (id_unidade) REFERENCES UNIDADE(id_unidade)
+        ON UPDATE CASCADE,
     CONSTRAINT chk_duracao CHECK (duracao_minutos > 0)
 );
+
+-- Criação da tabela para entidade AUDITORIA_ATENDIMENTO
+CREATE TABLE AUDITORIA_ATENDIMENTO (
+    -- Atributos:
+    id_auditoria SERIAL PRIMARY KEY,
+    id_atendimento INT NOT NULL,
+    data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usuario VARCHAR(50) NOT NULL,
+    operacao VARCHAR(20) NOT NULL, -- Inserção, atualização ou exclusão
+    dados_antigos jsonb,
+    dados_novos jsonb,
+    -- Restrições:
+    CONSTRAINT chk_operacao CHECK (operacao IN ('Insercao', 'Atualizacao', 'Exclusao'))
+);
+
 
 -- Criação da tabela para entidade PROCEDIMENTO
 CREATE TABLE PROCEDIMENTO (
@@ -144,6 +179,7 @@ CREATE TABLE PROCEDIMENTO_REALIZADO (
     id_procedimento INT NOT NULL, -- Da tabela PROCEDIMENTO
     quantidade INT NOT NULL DEFAULT 1,
     tempo_real_minutos INT NOT NULL,
+    data_hora_inicio TIMESTAMP,
     observacao TEXT,
     faturado BOOLEAN NOT NULL DEFAULT FALSE,
     -- Restrições:
@@ -206,6 +242,3 @@ CREATE TABLE HISTORICO_PAPEL (
     CONSTRAINT chk_papel CHECK (papel IN ('Residente', 'Preceptor')),
     CONSTRAINT chk_datas_historico CHECK (data_fim IS NULL OR data_fim >= data_inicio)
 );
-
-
-

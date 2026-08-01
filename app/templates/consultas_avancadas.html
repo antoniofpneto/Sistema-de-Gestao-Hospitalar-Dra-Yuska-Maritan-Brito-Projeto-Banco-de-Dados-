@@ -1,0 +1,107 @@
+<!-- app/templates/consultas_avancadas.html -->
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="mb-4">Consultas Avançadas (ORM)</h2>
+
+<!-- 5.1 -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        Preceptores que supervisionaram residentes que atenderam pacientes flamenguistas
+    </div>
+    <div class="card-body">
+        {% if preceptores_flamenguistas %}
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr><th>Nome</th><th>Titulação</th></tr>
+            </thead>
+            <tbody>
+                {% for p in preceptores_flamenguistas %}
+                <tr>
+                    <td>{{ p.pessoa.nome }}</td>
+                    <td>{{ p.titulacao }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted mb-0">Nenhum preceptor encontrado nessas condições.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 5.2 -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        Último atendimento de cada paciente
+    </div>
+    <div class="card-body">
+        {% if ultimos_atendimentos %}
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Paciente</th><th>Data/Hora</th><th>Residente</th>
+                    <th>Preceptor</th><th>Procedimentos</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in ultimos_atendimentos %}
+                <tr>
+                    <td>{{ a.paciente.pessoa.nome }}</td>
+                    <td>{{ a.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>{{ a.residente.pessoa.nome }}</td>
+                    <td>{{ a.preceptor.pessoa.nome }}</td>
+                    <td>
+                        {% for pr in a.procedimentos_realizados %}
+                            <span class="badge bg-secondary">{{ pr.procedimento_rel.nome }}</span>
+                        {% else %}
+                            <span class="text-muted">(nenhum)</span>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted mb-0">Nenhum atendimento registrado ainda.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- 5.3 -->
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        Percentual de procedimentos de alto risco por residente
+    </div>
+    <div class="card-body">
+        {% if percentuais_alto_risco %}
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Residente</th><th>Ano</th>
+                    <th>Alto risco</th><th>Total</th><th>Percentual</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in percentuais_alto_risco %}
+                <tr>
+                    <td>{{ r.nome }}</td>
+                    <td>{{ r.ano_residencia }}</td>
+                    <td>{{ r.total_alto_risco }}</td>
+                    <td>{{ r.total_procedimentos }}</td>
+                    <td>
+                        <span class="badge {{ 'bg-danger' if r.percentual >= 50 else 'bg-warning text-dark' if r.percentual > 0 else 'bg-success' }}">
+                            {{ r.percentual }}%
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted mb-0">Nenhum residente com procedimentos realizados ainda.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

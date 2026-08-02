@@ -290,15 +290,16 @@
                 <div class="card-body px-4 pb-4">
                     <p class="text-muted small mb-4">Duas transações concorrentes disputando o mesmo residente/dia/turno/unidade, resolvidas com lock pessimista.</p>
 
-                    <div class="roteiro-item roteiro-item-static">
-                        <div class="roteiro-icon bg-dark-subtle text-dark"><i class="bi bi-terminal fs-5"></i></div>
+                    <!-- Bloco transformado em link interativo -->
+                    <a href="/concorrencia" class="roteiro-item">
+                        <div class="roteiro-icon bg-dark-subtle text-dark"><i class="bi bi-diagram-2 fs-5"></i></div>
                         <div class="flex-grow-1">
-                            <h6 class="mb-1 fw-bold text-dark">SELECT ... FOR UPDATE</h6>
-                            <small class="text-muted d-block mb-2">Executado fora da aplicação web — a segunda thread aguarda a liberação do lock, evitando inconsistência na escala.</small>
-                            <code class="d-inline-block bg-dark text-light rounded-2 px-3 py-2 small">python simulacao_concorrencia.py</code>
+                            <h6 class="mb-1 fw-bold text-dark">Simulação Web (SELECT ... FOR UPDATE)</h6>
+                            <small class="text-muted d-block mb-1">Acompanhe a tentativa de inserção simultânea. Os blocos e os logs estão sincronizados com a requisição real no banco de dados.</small>
                         </div>
-                        <span class="badge bg-dark-subtle text-dark border">Terminal &amp; logs</span>
-                    </div>
+                        <span class="badge bg-dark text-light border ms-2 d-none d-md-inline-block">Abrir Simulação</span>
+                        <i class="bi bi-chevron-right text-muted ms-2"></i>
+                    </a>
                 </div>
             </div>
         </div>

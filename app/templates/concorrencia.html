@@ -94,6 +94,32 @@
         document.getElementById('terminal-output').innerHTML = "Aguardando execução...\n";
     }
 
+    // Função para resetar os blocos IMEDIATAMENTE ao clicar no botão
+    function resetarAnimacao() {
+        const db = document.getElementById('bloco-db');
+        const dbStatus = document.getElementById('status-db');
+
+        // Volta posições para o zero
+        document.getElementById('bloco-t1').style.transform = "translateX(0)";
+        document.getElementById('bloco-t2').style.transform = "translateX(0)";
+        
+        // Volta as cores originais (Azul)
+        document.getElementById('bloco-t1').className = "p-3 bg-primary text-white rounded transition-all box-thread";
+        document.getElementById('bloco-t2').className = "p-3 bg-info text-white rounded transition-all box-thread";
+        
+        // Volta os textos para "Aguardando..."
+        document.getElementById('bloco-t1').innerHTML = "<strong>Thread 1</strong><br><small>Aguardando...</small>";
+        document.getElementById('bloco-t2').innerHTML = "<strong>Thread 2</strong><br><small>Aguardando...</small>";
+        
+        // Restaura o visual do Banco de Dados para cinza (Livre)
+        db.style.borderColor = "#6c757d";
+        dbStatus.className = "badge bg-secondary";
+        dbStatus.innerText = "LIVRE";
+
+        // Limpa a legenda
+        document.getElementById('animacao-legenda').innerText = "Aguardando resposta do banco de dados...";
+    }
+
     // Função auxiliar para escrever no terminal com cores
     function escreverLog(mensagem, corClass = 'text-light') {
         const terminal = document.getElementById('terminal-output');
@@ -102,23 +128,15 @@
     }
 
     // Função que anima os blocos baseada no VENCEDOR real do backend
-    function executarCoreografiaDataDriven(vencedor, perdedor, logsReais) {
+    function executarCoreografiaDataDriven(vencedor, perdedor, rawLogs) {
+        // PROTEÇÃO: Remove qualquer linha duplicada acidental vinda do Python
+        const logsReais = [...new Set(rawLogs)];
+
         const blocoVencedor = document.getElementById(`bloco-${vencedor.toLowerCase().replace('thread-', 't')}`);
         const blocoPerdedor = document.getElementById(`bloco-${perdedor.toLowerCase().replace('thread-', 't')}`);
         const db = document.getElementById('bloco-db');
         const dbStatus = document.getElementById('status-db');
         const legenda = document.getElementById('animacao-legenda');
-
-        // 1. Resetar visual
-        document.getElementById('bloco-t1').style.transform = "translateX(0)";
-        document.getElementById('bloco-t2').style.transform = "translateX(0)";
-        document.getElementById('bloco-t1').className = "p-3 bg-primary text-white rounded transition-all box-thread";
-        document.getElementById('bloco-t2').className = "p-3 bg-info text-white rounded transition-all box-thread";
-        document.getElementById('bloco-t1').innerHTML = "<strong>Thread 1</strong><br><small>Aguardando...</small>";
-        document.getElementById('bloco-t2').innerHTML = "<strong>Thread 2</strong><br><small>Aguardando...</small>";
-        db.style.borderColor = "#6c757d";
-        dbStatus.className = "badge bg-secondary";
-        dbStatus.innerText = "LIVRE";
         
         document.getElementById('terminal-output').innerHTML = "";
         escreverLog("--- REPRODUZINDO RESULTADO OFICIAL DO BANCO ---", "text-primary fw-bold");
@@ -129,9 +147,9 @@
             document.getElementById('bloco-t1').style.transform = "translateX(150px)";
             document.getElementById('bloco-t2').style.transform = "translateX(-150px)";
 
-            // Imprime logs de inicialização
+            // Imprime APENAS os logs de inicialização (Corrigido)
             logsReais.forEach(log => {
-                if (log.includes("Iniciando") || log.includes("Solicitando")) {
+                if (log.includes("Iniciando") || log.includes("Solicitando") || log.includes("Preparando") || log.includes("LARGADA")) {
                     escreverLog(log, 'text-light');
                 }
             });
@@ -146,9 +164,9 @@
             dbStatus.className = "badge bg-warning text-dark";
             dbStatus.innerText = "LOCKED (Em uso)";
             
-            // Imprime APENAS o Lock do vencedor neste momento
+            // Imprime APENAS o Lock do vencedor neste momento (ignorando SUCESSO)
             logsReais.forEach(log => {
-                if (log.includes(`[${vencedor}]`) && (log.includes("Lock") || log.includes("🔒"))) {
+                if (log.includes(`[${vencedor}]`) && (log.includes("adquirido") || log.includes("🔒")) && !log.includes("SUCESSO")) {
                     escreverLog(log, 'text-warning');
                 }
             });
@@ -162,7 +180,7 @@
             blocoPerdedor.innerHTML = `<strong>${perdedor}</strong><br><small>Bloqueada 🛑</small>`;
         }, 2200);
 
-        // 5. Passo 4: Resolução
+        // 5. Passo 4: Resolução final
         setTimeout(() => {
             legenda.innerText = `Transação concluída. ${vencedor} salvou a vaga, ${perdedor} sofreu Rollback.`;
             blocoVencedor.classList.replace('bg-warning', 'bg-success');
@@ -172,20 +190,19 @@
             dbStatus.innerText = "ATUALIZADO";
             blocoPerdedor.style.transform = "translateX(0)";
 
-            // Imprime os logs finais
+            // Imprime os logs finais de Sucesso do vencedor e Conflito do perdedor
             logsReais.forEach(log => {
                 if (log.includes(`[${vencedor}]`) && (log.includes("SUCESSO") || log.includes("✅"))) {
                     escreverLog(log, 'text-success');
                 }
-                // Mostra o log do perdedor pegando o lock atrasado, se existir
-                if (log.includes(`[${perdedor}]`) && (log.includes("Lock") || log.includes("🔒"))) {
+                if (log.includes(`[${perdedor}]`) && (log.includes("adquirido") || log.includes("🔒")) && !log.includes("SUCESSO")) {
                     escreverLog(log, 'text-warning');
                 }
                 if (log.includes(`[${perdedor}]`) && (log.includes("CONFLITO") || log.includes("🛑"))) {
                     escreverLog(log, 'text-danger');
                 }
             });
-            escreverLog("\n--- Fim da Execução ---");
+            escreverLog("\n--- Fim da Execução ---", "text-muted");
         }, 3500);
     }
 
@@ -193,6 +210,8 @@
         const btn = document.getElementById('btn-simular');
         const spinner = document.getElementById('loading-spinner');
         const loadingText = document.getElementById('loading-text');
+
+        resetarAnimacao();
 
         btn.disabled = true;
         spinner.style.display = 'inline-block';
@@ -210,9 +229,6 @@
             const data = await response.json();
             const logs = data.logs;
 
-            // ==========================================
-            // CORREÇÃO: O juiz agora avalia pelo SUCESSO
-            // ==========================================
             let vencedor = "Thread-1"; // Assume T1 como padrão
             let perdedor = "Thread-2";
 

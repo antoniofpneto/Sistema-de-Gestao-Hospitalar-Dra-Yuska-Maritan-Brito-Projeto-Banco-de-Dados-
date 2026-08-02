@@ -1,107 +1,186 @@
-<!-- app/templates/consultas_avancadas.html -->
 {% extends "base.html" %}
+
 {% block content %}
-
-<h2 class="mb-4">Consultas Avançadas (ORM)</h2>
-
-<!-- 5.1 -->
-<div class="card mb-4">
-    <div class="card-header bg-primary text-white">
-        Preceptores que supervisionaram residentes que atenderam pacientes flamenguistas
+<!-- ============================================================ -->
+<!-- CABEÇALHO -->
+<!-- ============================================================ -->
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 pb-3 border-bottom">
+    <div>
+        <span class="text-uppercase small fw-semibold text-primary d-block mb-1" style="letter-spacing:.08em;">
+            Relatórios Gerenciais
+        </span>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-search-heart text-primary me-2"></i>Consultas Avançadas (ORM)
+        </h2>
+        <p class="text-muted mb-0">Extração de dados e cruzamento relacional complexo via SQLAlchemy.</p>
     </div>
-    <div class="card-body">
-        {% if preceptores_flamenguistas %}
-        <table class="table table-striped mb-0">
-            <thead>
-                <tr><th>Nome</th><th>Titulação</th></tr>
-            </thead>
-            <tbody>
-                {% for p in preceptores_flamenguistas %}
-                <tr>
-                    <td>{{ p.pessoa.nome }}</td>
-                    <td>{{ p.titulacao }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p class="text-muted mb-0">Nenhum preceptor encontrado nessas condições.</p>
-        {% endif %}
-    </div>
+    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fw-medium" title="Requisito 5">
+        <i class="bi bi-database-check me-1"></i> Requisito 5
+    </span>
 </div>
 
-<!-- 5.2 -->
-<div class="card mb-4">
-    <div class="card-header bg-primary text-white">
-        Último atendimento de cada paciente
+<!-- ============================================================ -->
+<!-- CONSULTA 5.1: PRECEPTORES DE FLAMENGUISTAS -->
+<!-- ============================================================ -->
+<div class="card border-0 shadow-sm rounded-4 mb-5">
+    <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex align-items-center gap-3">
+        <div class="bg-danger-subtle text-danger-emphasis rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+            <i class="bi bi-award fs-5"></i>
+        </div>
+        <h5 class="fw-bold text-dark mb-0">Preceptores de Pacientes Flamenguistas</h5>
     </div>
-    <div class="card-body">
-        {% if ultimos_atendimentos %}
-        <table class="table table-striped mb-0">
-            <thead>
-                <tr>
-                    <th>Paciente</th><th>Data/Hora</th><th>Residente</th>
-                    <th>Preceptor</th><th>Procedimentos</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for a in ultimos_atendimentos %}
-                <tr>
-                    <td>{{ a.paciente.pessoa.nome }}</td>
-                    <td>{{ a.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
-                    <td>{{ a.residente.pessoa.nome }}</td>
-                    <td>{{ a.preceptor.pessoa.nome }}</td>
-                    <td>
-                        {% for pr in a.procedimentos_realizados %}
-                            <span class="badge bg-secondary">{{ pr.procedimento_rel.nome }}</span>
-                        {% else %}
-                            <span class="text-muted">(nenhum)</span>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 custom-table">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4 text-uppercase small text-muted fw-semibold">Nome do Preceptor</th>
+                        <th class="text-uppercase small text-muted fw-semibold pe-4">Titulação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if preceptores_flamenguistas %}
+                        {% for p in preceptores_flamenguistas %}
+                        <tr>
+                            <td class="ps-4 fw-semibold text-dark">Dr(a). {{ p.pessoa.nome }}</td>
+                            <td class="pe-4">
+                                <span class="badge bg-dark-subtle text-dark rounded-pill fw-medium px-3 py-1">{{ p.titulacao }}</span>
+                            </td>
+                        </tr>
                         {% endfor %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p class="text-muted mb-0">Nenhum atendimento registrado ainda.</p>
-        {% endif %}
+                    {% else %}
+                        <tr>
+                            <td colspan="2" class="text-center text-muted py-5">
+                                <i class="bi bi-inbox fs-3 d-block mb-2 text-body-tertiary"></i>
+                                Nenhum preceptor encontrado nessas condições.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
-<!-- 5.3 -->
-<div class="card mb-4">
-    <div class="card-header bg-primary text-white">
-        Percentual de procedimentos de alto risco por residente
+<!-- ============================================================ -->
+<!-- CONSULTA 5.2: ÚLTIMO ATENDIMENTO -->
+<!-- ============================================================ -->
+<div class="card border-0 shadow-sm rounded-4 mb-5">
+    <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex align-items-center gap-3">
+        <div class="bg-info-subtle text-info-emphasis rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+            <i class="bi bi-clock-history fs-5"></i>
+        </div>
+        <h5 class="fw-bold text-dark mb-0">Último Atendimento de Cada Paciente</h5>
     </div>
-    <div class="card-body">
-        {% if percentuais_alto_risco %}
-        <table class="table table-striped mb-0">
-            <thead>
-                <tr>
-                    <th>Residente</th><th>Ano</th>
-                    <th>Alto risco</th><th>Total</th><th>Percentual</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for r in percentuais_alto_risco %}
-                <tr>
-                    <td>{{ r.nome }}</td>
-                    <td>{{ r.ano_residencia }}</td>
-                    <td>{{ r.total_alto_risco }}</td>
-                    <td>{{ r.total_procedimentos }}</td>
-                    <td>
-                        <span class="badge {{ 'bg-danger' if r.percentual >= 50 else 'bg-warning text-dark' if r.percentual > 0 else 'bg-success' }}">
-                            {{ r.percentual }}%
-                        </span>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p class="text-muted mb-0">Nenhum residente com procedimentos realizados ainda.</p>
-        {% endif %}
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 custom-table">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4 text-uppercase small text-muted fw-semibold">Paciente</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Data e Hora</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Equipe Responsável</th>
+                        <th class="text-uppercase small text-muted fw-semibold pe-4">Procedimentos Realizados</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if ultimos_atendimentos %}
+                        {% for a in ultimos_atendimentos %}
+                        <tr>
+                            <td class="ps-4 fw-semibold text-dark">{{ a.paciente.pessoa.nome }}</td>
+                            <td class="text-muted small fw-medium">
+                                <i class="bi bi-calendar-check me-1"></i> {{ a.data_hora.strftime('%d/%m/%Y às %H:%M') }}
+                            </td>
+                            <td>
+                                <div class="small">
+                                    <div class="text-muted"><span class="fw-semibold">Residente:</span> {{ a.residente.pessoa.nome }}</div>
+                                    <div class="text-muted"><span class="fw-semibold">Preceptor:</span> {{ a.preceptor.pessoa.nome }}</div>
+                                </div>
+                            </td>
+                            <td class="pe-4">
+                                <div class="d-flex flex-wrap gap-1 mt-1 mb-1">
+                                {% for pr in a.procedimentos_realizados %}
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill fw-medium px-2 py-1">{{ pr.procedimento_rel.nome }}</span>
+                                {% else %}
+                                    <span class="text-muted small fst-italic">Nenhum procedimento</span>
+                                {% endfor %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-5">
+                                <i class="bi bi-calendar-x fs-3 d-block mb-2 text-body-tertiary"></i>
+                                Nenhum atendimento registrado ainda no sistema.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
+<!-- ============================================================ -->
+<!-- CONSULTA 5.3: PERCENTUAL DE ALTO RISCO -->
+<!-- ============================================================ -->
+<div class="card border-0 shadow-sm rounded-4 mb-5">
+    <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex align-items-center gap-3">
+        <div class="bg-warning-subtle text-warning-emphasis rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+            <i class="bi bi-activity fs-5"></i>
+        </div>
+        <h5 class="fw-bold text-dark mb-0">Percentual de Procedimentos de Alto Risco por Residente</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 custom-table">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4 text-uppercase small text-muted fw-semibold">Residente</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Ano</th>
+                        <th class="text-center text-uppercase small text-muted fw-semibold">Alto Risco</th>
+                        <th class="text-center text-uppercase small text-muted fw-semibold">Total Procedimentos</th>
+                        <th class="text-uppercase small text-muted fw-semibold pe-4">Desempenho (Percentual)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if percentuais_alto_risco %}
+                        {% for r in percentuais_alto_risco %}
+                        <tr>
+                            <td class="ps-4 fw-semibold text-dark">{{ r.nome }}</td>
+                            <td><span class="badge bg-light border text-dark rounded-pill px-2">{{ r.ano_residencia }}</span></td>
+                            <td class="text-center fw-medium text-danger">{{ r.total_alto_risco }}</td>
+                            <td class="text-center fw-medium text-secondary">{{ r.total_procedimentos }}</td>
+                            <td class="pe-4">
+                                {% if r.percentual >= 50 %}
+                                    <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1 fw-bold fs-6">{{ r.percentual }}%</span>
+                                {% elif r.percentual > 0 %}
+                                    <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-3 py-1 fw-bold fs-6">{{ r.percentual }}%</span>
+                                {% else %}
+                                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 fw-bold fs-6">{{ r.percentual }}%</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-5">
+                                <i class="bi bi-clipboard-x fs-3 d-block mb-2 text-body-tertiary"></i>
+                                Nenhum residente com procedimentos realizados ainda.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Suaviza a transição do hover na tabela */
+    .custom-table tbody tr {
+        transition: background-color 0.15s ease-in-out;
+    }
+</style>
 {% endblock %}

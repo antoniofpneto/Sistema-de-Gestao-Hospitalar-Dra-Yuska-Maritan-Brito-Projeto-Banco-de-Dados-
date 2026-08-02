@@ -1,45 +1,81 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-clipboard2-pulse"></i> Central de Atendimentos</h2>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovoAtendimento">
-        <i class="bi bi-plus-circle"></i> Novo Atendimento
+<!-- ============================================================ -->
+<!-- CABEÇALHO -->
+<!-- ============================================================ -->
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 pb-3 border-bottom">
+    <div>
+        <span class="text-uppercase small fw-semibold text-primary d-block mb-1" style="letter-spacing:.08em;">
+            Operação Diária
+        </span>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-clipboard2-pulse text-primary me-2"></i>Central de Atendimentos
+        </h2>
+        <p class="text-muted mb-0">Registro, edição e auditoria dos atendimentos realizados no hospital.</p>
+    </div>
+    <button class="btn btn-primary rounded-3 shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#modalNovoAtendimento">
+        <i class="bi bi-plus-circle me-1"></i> Novo Atendimento
     </button>
 </div>
 
-<!-- Tabela de Atendimentos -->
-<div class="card shadow-sm border-primary">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Registros do Dia</h5>
-        <span class="badge bg-light text-dark" title="Requisito 4: Operações 1 e 3">ORM: Insert & Joins</span>
+<!-- ============================================================ -->
+<!-- TABELA DE ATENDIMENTOS -->
+<!-- ============================================================ -->
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="fw-bold text-dark mb-0">
+            <i class="bi bi-card-list text-primary me-2"></i>Registros do Dia
+        </h5>
+        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2" title="Requisito 4: Operações 1 e 3">
+            <i class="bi bi-database-check me-1"></i> ORM: Insert &amp; Joins
+        </span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th>Paciente</th>
-                        <th>Residente</th>
-                        <th>Preceptor</th>
-                        <th>Data/Hora</th>
-                        <th>Unidade</th>
-                        <th>Duração</th>
+                        <th class="ps-4 text-uppercase small text-muted fw-semibold">Paciente</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Residente</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Preceptor</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Data/Hora</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Unidade</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Duração</th>
+                        <th class="text-uppercase small text-muted fw-semibold text-end pe-4">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for a in atendimentos %}
                     <tr onclick="window.location.href='/atendimento/{{ a.id_atendimento }}'" style="cursor: pointer;">
-                        <td>{{ a.paciente.pessoa.nome }}</td>
+                        <td class="ps-4 fw-semibold text-dark">{{ a.paciente.pessoa.nome }}</td>
                         <td>{{ a.residente.pessoa.nome }}</td>
                         <td>{{ a.preceptor.pessoa.nome }}</td>
-                        <td>{{ a.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
-                        <td><span class="badge bg-primary">{{ a.unidade.nome }}</span></td>
-                        <td>{{ a.duracao_minutos }} min</td>
+                        <td class="text-muted">{{ a.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td><span class="badge bg-primary-subtle text-primary rounded-pill fw-medium">{{ a.unidade.nome }}</span></td>
+                        <td class="text-muted">{{ a.duracao_minutos }} min</td>
+                        <td onclick="event.stopPropagation();" class="text-end pe-4">
+                            <div class="d-inline-flex gap-1">
+                                <!-- Botão Editar (Abre Modal) -->
+                                <button class="btn btn-sm btn-outline-primary rounded-circle action-btn" data-bs-toggle="modal" data-bs-target="#modalEditar{{ a.id_atendimento }}" title="Editar Atendimento">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+
+                                <!-- Botão Excluir (Link direto para rota de delete) -->
+                                <form action="/atendimento/excluir/{{ a.id_atendimento }}" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir este atendimento? Isso gerará um registro de auditoria.');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle action-btn" title="Excluir Atendimento">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">Nenhum atendimento registrado no sistema.</td>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-1 d-block mb-2 text-body-tertiary"></i>
+                            Nenhum atendimento registrado no sistema.
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -48,18 +84,114 @@
     </div>
 </div>
 
-<!-- Modal de Novo Atendimento -->
+<!-- ============================================================ -->
+<!-- MODAIS DE EDIÇÃO PARA CADA ATENDIMENTO -->
+<!-- ============================================================ -->
+{% for atendimento in atendimentos %}
+<div class="modal fade" id="modalEditar{{ atendimento.id_atendimento }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content corporate-modal border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom px-4 pt-4 pb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="modal-icon bg-primary-subtle text-primary"><i class="bi bi-pencil-square fs-5"></i></div>
+                    <h5 class="modal-title fw-bold text-dark mb-0">Editar Atendimento <span class="text-muted fw-normal">#{{ atendimento.id_atendimento }}</span></h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/atendimento/editar/{{ atendimento.id_atendimento }}" method="POST">
+                <div class="modal-body text-start px-4 py-4">
+
+                    <h6 class="section-label mb-3"><i class="bi bi-people me-2"></i>Envolvidos</h6>
+                    <div class="row">
+                        <!-- Primeira Coluna -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Paciente</label>
+                            <select class="form-select" name="id_paciente" required>
+                                {% for pac in pacientes %}
+                                    <option value="{{ pac.id_pessoa }}" {% if atendimento.id_paciente == pac.id_pessoa %}selected{% endif %}>
+                                        {{ pac.pessoa.nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Unidade</label>
+                            <select class="form-select" name="id_unidade" required>
+                                {% for uni in unidades %}
+                                    <option value="{{ uni.id_unidade }}" {% if atendimento.id_unidade == uni.id_unidade %}selected{% endif %}>
+                                        {{ uni.nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Segunda Coluna -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Residente</label>
+                            <select class="form-select" name="id_residente" required>
+                                {% for res in residentes %}
+                                    <option value="{{ res.id_profissional }}" {% if atendimento.id_residente == res.id_profissional %}selected{% endif %}>
+                                        {{ res.pessoa.nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Preceptor</label>
+                            <select class="form-select" name="id_preceptor" required>
+                                {% for pre in preceptores %}
+                                    <option value="{{ pre.id_profissional }}" {% if atendimento.id_preceptor == pre.id_profissional %}selected{% endif %}>
+                                        {{ pre.pessoa.nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <h6 class="section-label mb-3 mt-4"><i class="bi bi-calendar2-check me-2"></i>Dados do Atendimento</h6>
+                    <div class="row">
+                        <div class="col-md-7 mb-3">
+                            <label class="form-label">Data e Hora</label>
+                            <input type="datetime-local" class="form-control" name="data_hora" value="{{ atendimento.data_hora.strftime('%Y-%m-%dT%H:%M') }}" required>
+                        </div>
+                        <div class="col-md-5 mb-3">
+                            <label class="form-label">Duração (Min)</label>
+                            <input type="number" class="form-control" name="duracao_minutos" value="{{ atendimento.duracao_minutos }}" required>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary rounded-3"><i class="bi bi-save me-1"></i> Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- ============================================================ -->
+<!-- MODAL DE NOVO ATENDIMENTO -->
+<!-- ============================================================ -->
 <div class="modal fade" id="modalNovoAtendimento" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Registrar Novo Atendimento</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-content corporate-modal border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom px-4 pt-4 pb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="modal-icon bg-primary-subtle text-primary"><i class="bi bi-clipboard2-plus fs-5"></i></div>
+                    <h5 class="modal-title fw-bold text-dark mb-0">Registrar Novo Atendimento</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form action="/atendimento/novo" method="POST">
-                <div class="modal-body">
-                    
-                    <h6 class="text-muted border-bottom pb-2 mb-3">Envolvidos</h6>
+                <div class="modal-body px-4 py-4">
+
+                    <h6 class="section-label mb-3"><i class="bi bi-people me-2"></i>Envolvidos</h6>
                     <div class="row">
                         <div class="col-md-12 mb-3">
                             <label class="form-label">Paciente</label>
@@ -93,7 +225,7 @@
                         </div>
                     </div>
 
-                    <h6 class="text-muted border-bottom pb-2 mb-3 mt-2">Dados do Atendimento</h6>
+                    <h6 class="section-label mb-3 mt-4"><i class="bi bi-calendar2-check me-2"></i>Dados do Atendimento</h6>
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Unidade</label>
@@ -114,53 +246,137 @@
                         </div>
 
                     </div>
-                    <h6 class="text-muted border-bottom pb-2 mb-3 mt-4">Procedimentos Realizados (Opcional)</h6>
-                    
+
+                    <h6 class="section-label mb-3 mt-4"><i class="bi bi-clipboard2-pulse me-2"></i>Procedimentos Realizados <span class="text-muted fw-normal text-capitalize">(Opcional)</span></h6>
+
                     <!-- Campo oculto que guarda o JSON gerado pelo JavaScript -->
                     <input type="hidden" name="procedimentos_json" id="procedimentos_json" value="[]">
-                    
+
                     <div id="container-procedimentos">
                         <!-- O JavaScript injeta as linhas de procedimentos aqui -->
                     </div>
-                    
-                    <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="adicionarLinhaProcedimento()">
-                        <i class="bi bi-plus-circle"></i> Adicionar Procedimento
+
+                    <button type="button" class="btn btn-sm btn-outline-success rounded-3 mt-2" onclick="adicionarLinhaProcedimento()">
+                        <i class="bi bi-plus-circle me-1"></i> Adicionar Procedimento
                     </button>
 
                 </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-check2-circle"></i> Registrar Atendimento</button>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary rounded-3"><i class="bi bi-check2-circle me-1"></i> Registrar Atendimento</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<!-- ============================================================ -->
+<!-- ESTILOS DA CENTRAL DE ATENDIMENTOS -->
+<!-- ============================================================ -->
+<style>
+    /* Botões de ação da tabela: discretos, com feedback claro no hover */
+    .action-btn {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-width: 1px;
+        transition: all .15s ease-in-out;
+    }
+    .action-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 .15rem .4rem rgba(0, 0, 0, .08);
+    }
+
+    /* Ícone circular usado nos cabeçalhos dos modais */
+    .modal-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+    }
+
+    /* Rótulos de seção dentro dos modais (Envolvidos / Dados / Procedimentos) */
+    .section-label {
+        text-transform: uppercase;
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        color: var(--bs-primary);
+        padding-bottom: .6rem;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    /* Cabeçalho e rodapé dos modais em tom neutro (identidade "SaaS Moderno") */
+    .corporate-modal .modal-header,
+    .corporate-modal .modal-footer {
+        background-color: #fff;
+    }
+
+    /* Labels e campos de formulário com aparência corporativa */
+    .corporate-modal .form-label {
+        color: #6c757d;
+        font-size: .8rem;
+        font-weight: 600;
+        margin-bottom: .35rem;
+    }
+    .corporate-modal .form-control,
+    .corporate-modal .form-select {
+        border-radius: .6rem;
+        border-color: #dee2e6;
+    }
+    .corporate-modal .form-control:focus,
+    .corporate-modal .form-select:focus {
+        border-color: rgba(13, 110, 253, .5);
+        box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .12);
+    }
+
+    /* Linhas dinâmicas de procedimentos, injetadas via JavaScript */
+    .linha-procedimento {
+        background-color: var(--bs-light);
+        border: 1px solid var(--bs-border-color);
+        border-radius: .6rem;
+        padding: .6rem .5rem;
+        margin-left: 0;
+        margin-right: 0;
+    }
+</style>
+
 <script>
     // Função para criar uma nova linha de campos na tela
     function adicionarLinhaProcedimento() {
         const container = document.getElementById('container-procedimentos');
-        
+
         const linha = document.createElement('div');
-        linha.className = 'row mb-2 linha-procedimento';
+        linha.className = 'row mb-2 linha-procedimento align-items-center';
         linha.innerHTML = `
-            <div class="col-md-5">
-                <select class="form-select select-proc" required>
-                    <option value="" disabled selected>Escolha o procedimento...</option>
+            <div class="col-md-4">
+                <select class="form-select form-select-sm rounded-3 select-proc" required>
+                    <option value="" disabled selected>Procedimento...</option>
                     {% for proc in procedimentos %}
                         <option value="{{ proc.id_procedimento }}">{{ proc.codigo }} - {{ proc.nome }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2">
-                <input type="number" class="form-control input-qtd" placeholder="Qtd" min="1" value="1" required>
+            <!-- NOVO CAMPO: Início do Procedimento -->
+            <div class="col-md-4">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">Início</span>
+                    <input type="datetime-local" class="form-control input-inicio" required>
+                </div>
             </div>
-            <div class="col-md-3">
-                <input type="number" class="form-control input-tempo" placeholder="Tempo (min)" min="1" required>
+            <div class="col-md-1">
+                <input type="number" class="form-control input-qtd form-control-sm" placeholder="Qtd" min="1" value="1" required>
             </div>
             <div class="col-md-2">
-                <button type="button" class="btn btn-outline-danger w-100" onclick="this.closest('.linha-procedimento').remove()">
+                <input type="number" class="form-control input-tempo form-control-sm" placeholder="Min" min="1" required title="Tempo (min)">
+            </div>
+            <div class="col-md-1 text-end">
+                <button type="button" class="btn btn-outline-danger btn-sm w-100 rounded-3" onclick="this.closest('.linha-procedimento').remove()">
                     <i class="bi bi-trash"></i>
                 </button>
             </div>
@@ -178,14 +394,17 @@
             const idProc = linha.querySelector('.select-proc').value;
             const qtd = linha.querySelector('.input-qtd').value;
             const tempo = linha.querySelector('.input-tempo').value;
+            const inicio = linha.querySelector('.input-inicio').value;
 
-            if (idProc && qtd && tempo) {
+            // Valida se todos os campos estão preenchidos antes de adicionar
+            if (idProc && qtd && tempo && inicio) {
                 // Monta o objeto no exato formato que a Stored Procedure espera
                 listaProcedimentos.push({
                     id_procedimento: parseInt(idProc),
                     quantidade: parseInt(qtd),
                     tempo_real_minutos: parseInt(tempo),
-                    observacao: ""
+                    data_hora_inicio: inicio,
+                    observacao: null
                 });
             }
         });

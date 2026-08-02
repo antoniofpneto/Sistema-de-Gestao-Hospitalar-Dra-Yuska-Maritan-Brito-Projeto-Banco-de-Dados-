@@ -1,88 +1,166 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="mb-3">
-    <a href="{{ url_for('listar_atendimentos') }}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left"></i> Voltar para Central
+<!-- ============================================================ -->
+<!-- NAVEGAÇÃO E CABEÇALHO -->
+<!-- ============================================================ -->
+<div class="mb-4">
+    <a href="{{ url_for('listar_atendimentos') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-medium transition-hover">
+        <i class="bi bi-arrow-left me-1"></i> Voltar para Central
     </a>
 </div>
 
-<div class="row">
-    <!-- Card de Resumo do Atendimento -->
-    <div class="col-md-4 mb-4">
-        <div class="card shadow-sm border-info">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Ficha do Atendimento</h5>
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 pb-3 border-bottom">
+    <div>
+        <span class="text-uppercase small fw-semibold text-info d-block mb-1" style="letter-spacing:.08em;">
+            Visão Detalhada
+        </span>
+        <h2 class="fw-bold text-dark mb-0">
+            <i class="bi bi-file-earmark-medical text-info me-2"></i>Atendimento <span class="text-muted fw-normal">#{{ atendimento.id_atendimento }}</span>
+        </h2>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CONTEÚDO PRINCIPAL (GRID) -->
+<!-- ============================================================ -->
+<div class="row g-4 mb-5">
+    
+    <!-- ========================================== -->
+    <!-- CARD 1: FICHA DO ATENDIMENTO -->
+    <!-- ========================================== -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex align-items-center gap-3">
+                <div class="bg-info-subtle text-info-emphasis rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="bi bi-info-circle fs-5"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-0">Ficha Clínica</h5>
             </div>
-            <div class="card-body">
-                <h2 class="text-center text-info mb-4">#{{ atendimento.id_atendimento }}</h2>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item"><strong>Paciente:</strong> <br>{{ atendimento.paciente.pessoa.nome }}</li>
-                    <li class="list-group-item"><strong>Unidade:</strong> <br>{{ atendimento.unidade.nome }}</li>
-                    <li class="list-group-item"><strong>Residente:</strong> <br>{{ atendimento.residente.pessoa.nome }}</li>
-                    <li class="list-group-item"><strong>Data:</strong> <br>{{ atendimento.data_hora.strftime('%d/%m/%Y %H:%M') }}</li>
-                </ul>
+            <div class="card-body px-4 py-4">
+                
+                <div class="mb-4">
+                    <label class="text-uppercase small text-muted fw-bold d-block mb-1"><i class="bi bi-person me-1"></i> Paciente</label>
+                    <div class="fs-5 fw-semibold text-dark">{{ atendimento.paciente.pessoa.nome }}</div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="text-uppercase small text-muted fw-bold d-block mb-1"><i class="bi bi-hospital me-1"></i> Unidade</label>
+                    <div><span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 fw-medium">{{ atendimento.unidade.nome }}</span></div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="text-uppercase small text-muted fw-bold d-block mb-1"><i class="bi bi-file-medical me-1"></i> Residente Responsável</label>
+                    <div class="text-dark fw-medium">{{ atendimento.residente.pessoa.nome }}</div>
+                </div>
+                
+                <div class="mb-0">
+                    <label class="text-uppercase small text-muted fw-bold d-block mb-1"><i class="bi bi-calendar-event me-1"></i> Data, Hora e Duração</label>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-dark fw-medium fs-6">{{ atendimento.data_hora.strftime('%d/%m/%Y %H:%M') }}</span>
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill fw-medium px-2 py-1">
+                            <i class="bi bi-stopwatch me-1"></i>{{ atendimento.duracao_minutos }} min
+                        </span>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
-    <!-- Card de Procedimentos (Req. 3 e 5) -->
-    <div class="col-md-8 mb-4">
-        <div class="card shadow-sm border-primary">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-bandaid"></i> Procedimentos Realizados</h5>
-                <span class="badge bg-light text-dark" title="Requisitos 3 e 5">ORM Joins & Regras</span>
+    <!-- ========================================== -->
+    <!-- CARD 2: PROCEDIMENTOS REALIZADOS -->
+    <!-- ========================================== -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="bi bi-bandaid fs-5"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-0">Procedimentos Realizados</h5>
+                </div>
+                <span class="badge bg-light border text-dark rounded-pill px-3 py-2" title="Requisitos 3 e 5">
+                    <i class="bi bi-diagram-3 me-1"></i> ORM Joins & Regras
+                </span>
             </div>
+            
             <div class="card-body p-0">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-3">Cód.</th>
-                            <th>Procedimento</th>
-                            <th>Qtd</th>
-                            <th>Status Financeiro</th>
-                            <th class="text-end pe-3">Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- REQUISITO 3: Navegação do Relacionamento no ORM -->
-                        {% for pr in atendimento.procedimentos_realizados %}
-                        <tr>
-                            <td class="ps-3"><small class="text-muted">{{ pr.procedimento_rel.codigo }}</small></td>
-                            <!-- O nome vem da tabela Procedimento via Join Implícito! -->
-                            <td><strong>{{ pr.procedimento_rel.nome }}</strong></td>
-                            <td>{{ pr.quantidade }}x</td>
-                            
-                            <!-- Exibição Visual do Faturamento -->
-                            <td>
-                                {% if pr.faturado %}
-                                    <span class="badge bg-success"><i class="bi bi-currency-dollar"></i> Faturado</span>
-                                {% else %}
-                                    <span class="badge bg-warning text-dark"><i class="bi bi-clock-history"></i> Pendente</span>
-                                {% endif %}
-                            </td>
-                            
-                            <!-- REQUISITO 5: Botão de Ação -->
-                            <td class="text-end pe-3">
-                                <form action="/atendimento/{{ atendimento.id_atendimento }}/procedimento/{{ pr.id_procedimento }}/deletar" method="POST">
-                                    <!-- A "Mágica": Desabilita o botão se faturado for True -->
-                                    <button type="submit" class="btn btn-sm btn-danger" 
-                                        {% if pr.faturado %} disabled title="Não é possível apagar procedimentos faturados" {% endif %}
-                                        onclick="return confirm('Tem certeza que deseja apagar este procedimento do registro?')">
-                                        <i class="bi bi-trash"></i> Excluir
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">Nenhum procedimento registrado neste atendimento.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4 text-uppercase small text-muted fw-semibold">Cód.</th>
+                                <th class="text-uppercase small text-muted fw-semibold">Procedimento</th>
+                                <th class="text-uppercase small text-muted fw-semibold text-center">Qtd</th>
+                                <th class="text-uppercase small text-muted fw-semibold">Status Financeiro</th>
+                                <th class="text-uppercase small text-muted fw-semibold text-end pe-4">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- REQUISITO 3: Navegação do Relacionamento no ORM -->
+                            {% for pr in atendimento.procedimentos_realizados %}
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill fw-semibold">{{ pr.procedimento_rel.codigo }}</span>
+                                </td>
+                                
+                                <!-- O nome vem da tabela Procedimento via Join Implícito! -->
+                                <td class="fw-semibold text-dark">{{ pr.procedimento_rel.nome }}</td>
+                                
+                                <td class="text-center fw-medium text-muted">{{ pr.quantidade }}x</td>
+                                
+                                <!-- Exibição Visual do Faturamento -->
+                                <td>
+                                    {% if pr.faturado %}
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2 fw-medium"><i class="bi bi-check-circle me-1"></i> Faturado</span>
+                                    {% else %}
+                                        <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-3 py-2 fw-medium"><i class="bi bi-clock-history me-1"></i> Pendente</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <!-- REQUISITO 5: Botão de Ação -->
+                                <td class="text-end pe-4">
+                                    <form action="/atendimento/{{ atendimento.id_atendimento }}/procedimento/{{ pr.id_procedimento }}/deletar" method="POST" class="d-inline">
+                                        <!-- A "Mágica": Desabilita o botão se faturado for True -->
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-medium transition-hover" 
+                                            {% if pr.faturado %} disabled title="Não é possível apagar procedimentos faturados" {% endif %}
+                                            onclick="return confirm('Tem certeza que deseja apagar este procedimento do registro?')">
+                                            <i class="bi bi-trash"></i> Excluir
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-5">
+                                    <i class="bi bi-bandaid fs-2 d-block mb-2 text-body-tertiary"></i>
+                                    Nenhum procedimento registrado neste atendimento.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* Estilo reutilizável para botões com hover suave */
+    .transition-hover {
+        transition: all .2s ease-in-out;
+    }
+    .transition-hover:not(:disabled):hover {
+        transform: translateY(-2px);
+        box-shadow: 0 .25rem .5rem rgba(0,0,0,.08);
+    }
+    /* Estilo específico para botão disabled manter a consistência */
+    .btn-outline-danger:disabled {
+        border-color: #dee2e6;
+        color: #adb5bd;
+        background-color: #f8f9fa;
+    }
+</style>
 {% endblock %}

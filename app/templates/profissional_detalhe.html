@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- ============================================================ -->
+<!-- NAVEGAÇÃO E CABEÇALHO -->
+<!-- ============================================================ -->
+<div class="mb-4">
+    <a href="/profissionais" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-medium transition-hover">
+        <i class="bi bi-arrow-left me-1"></i> Voltar para Profissionais
+    </a>
+</div>
+
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 pb-3 border-bottom">
+    <div>
+        <span class="text-uppercase small fw-semibold text-primary d-block mb-1" style="letter-spacing:.08em;">
+            Perfil Profissional
+        </span>
+        <h2 class="fw-bold text-dark mb-0">
+            <i class="bi bi-person-badge text-primary me-2"></i>{{ profissional.pessoa.nome }}
+        </h2>
+    </div>
+    <div>
+        <span class="badge {% if tipo_profissional == 'Residente' %}bg-info-subtle text-info-emphasis{% else %}bg-success-subtle text-success{% endif %} border rounded-pill px-3 py-2 fs-6 fw-medium">
+            {{ tipo_profissional }}
+        </span>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- CONTEÚDO PRINCIPAL (GRID) -->
+<!-- ============================================================ -->
+<div class="row g-4 mb-5">
+    
+    <!-- ========================================== -->
+    <!-- CARD 1: INFORMAÇÕES PESSOAIS E PROFISSIONAIS -->
+    <!-- ========================================== -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex align-items-center gap-3">
+                <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="bi bi-person-lines-fill fs-5"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-0">Dados Cadastrais</h5>
+            </div>
+            <div class="card-body px-4 py-4">
+                
+                <div class="mb-4">
+                    <label class="text-uppercase small text-muted fw-bold d-block mb-1"><i class="bi bi-card-heading me-1"></i> CRM</label>
+                    <div class="fs-6 fw-semibold text-dark">{{ profissional.crm }}</div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="text-uppercase small text-muted fw-bold d-block mb-1"><i class="bi bi-calendar-plus me-1"></i> Admissão</label>
+                    <div class="fs-6 fw-semibold text-dark">{{ profissional.data_admissao.strftime('%d/%m/%Y') }}</div>
+                </div>
+                
+                <!-- Rótulo Dinâmico: Ano de Residência ou Titulação -->
+                <div class="mb-4">
+                    <label class="text-uppercase small text-muted fw-bold d-block mb-1">
+                        <i class="bi bi-mortarboard me-1"></i>
+                        {% if tipo_profissional == 'Residente' %}
+                            Ano de Residência
+                        {% else %}
+                            Titulação
+                        {% endif %}
+                    </label>
+                    <div class="fs-6 fw-semibold text-dark">{{ dado_especifico }}</div>
+                </div>
+
+                <div class="mb-0">
+                    <label class="text-uppercase small text-muted fw-bold d-block mb-2"><i class="bi bi-star me-1"></i> Especialidades</label>
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for esp in especialidades %}
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill fw-medium px-2 py-1">{{ esp.especialidade }}</span>
+                        {% else %}
+                            <span class="text-muted small fst-italic">Nenhuma especialidade registrada.</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- CARD 2: ESCALA SEMANAL -->
+    <!-- ========================================== -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-dark-subtle text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="bi bi-calendar-week fs-5"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-0">Escala Semanal</h5>
+                </div>
+                
+                <!-- Renderização Condicional: O botão só aparece para Residentes -->
+                {% if tipo_profissional == 'Residente' %}
+                <button class="btn btn-sm btn-dark rounded-pill px-3 fw-medium transition-hover" data-bs-toggle="modal" data-bs-target="#modalReajusteEscala">
+                    <i class="bi bi-arrow-left-right me-1"></i> Reajustar Turnos
+                </button>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4 text-uppercase small text-muted fw-semibold">Dia da Semana</th>
+                                <th class="text-uppercase small text-muted fw-semibold">Turno</th>
+                                <th class="text-uppercase small text-muted fw-semibold">Unidade</th>
+                                <!-- Coluna dinâmica para mostrar o parceiro de plantão -->
+                                <th class="text-uppercase small text-muted fw-semibold pe-4">
+                                    {% if tipo_profissional == 'Residente' %}Preceptor Supervisor{% else %}Residente Supervisionado{% endif %}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for esc in escalas %}
+                            <tr>
+                                <td class="ps-4 fw-bold text-dark">{{ esc.dia_semana }}</td>
+                                <td>
+                                    <!-- Badge condicional para os turnos -->
+                                    {% if esc.turno == 'Manha' %}
+                                        <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill fw-medium"><i class="bi bi-brightness-alt-high me-1"></i> Manhã</span>
+                                    {% elif esc.turno == 'Tarde' %}
+                                        <span class="badge bg-orange-subtle text-orange-emphasis rounded-pill fw-medium" style="background-color: #ffe5d0; color: #d97706;"><i class="bi bi-brightness-high me-1"></i> Tarde</span>
+                                    {% else %}
+                                        <span class="badge bg-dark-subtle text-dark rounded-pill fw-medium"><i class="bi bi-moon-stars me-1"></i> Noite</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="text-muted fw-medium">{{ esc.unidade.nome }}</span></td> 
+                                <td class="pe-4">
+                                    {% if tipo_profissional == 'Residente' %}
+                                        Dr(a). {{ esc.preceptor.pessoa.nome }}
+                                    {% else %}
+                                        {{ esc.residente.pessoa.nome }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-5">
+                                    <i class="bi bi-calendar-x fs-2 d-block mb-2 text-body-tertiary"></i>
+                                    Nenhuma escala definida para este profissional.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL DE REAJUSTE DE ESCALA (Apenas Residentes) -->
+<!-- ============================================================ -->
+{% if tipo_profissional == 'Residente' %}
+<div class="modal fade" id="modalReajusteEscala" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content corporate-modal border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom px-4 pt-4 pb-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="modal-icon bg-dark-subtle text-dark"><i class="bi bi-arrow-left-right fs-5"></i></div>
+                    <h5 class="modal-title fw-bold text-dark mb-0">Reajustar Escala <span class="text-muted fw-normal fs-6 d-none d-sm-inline">(Movimentação em Lote)</span></h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/escala/reajustar" method="POST">
+                <div class="modal-body px-4 py-4">
+                    <input type="hidden" name="id_residente" value="{{ profissional.id_pessoa }}">
+
+                    <!-- Exibição do Erro -->
+                    {% if reajuste_erro %}
+                    <div class="alert alert-danger border-0 bg-danger-subtle text-danger-emphasis rounded-3 d-flex align-items-center mb-4" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                        <div>{{ reajuste_erro }}</div>
+                    </div>
+                    {% else %}
+                    <div class="alert bg-light border text-muted d-flex align-items-center mb-4 rounded-3">
+                        <i class="bi bi-info-circle me-3 fs-5"></i>
+                        <small>Utilize esta ferramenta para mover os plantões do residente, respeitando a regra de negócio de não sobreposição (Triggers e Procedures).</small>
+                    </div>
+                    {% endif %}
+
+                    <!-- ORIGEM -->
+                    <h6 class="section-label mb-3"><i class="bi bi-box-arrow-up-right me-2"></i>De (Origem)</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label class="form-label">Unidade Atual</label>
+                            <select class="form-select" name="unidade_atual" required>
+                                <option value="" disabled {% if not reajuste_dados %}selected{% endif %}>Selecione...</option>
+                                {% for u in unidades %}
+                                    <option value="{{ u.id_unidade }}" {% if reajuste_dados and reajuste_dados.unidade_atual == u.id_unidade %}selected{% endif %}>
+                                        {{ u.nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label class="form-label">Dia Atual</label>
+                            <select class="form-select" name="dia_atual" required>
+                                {% for dia in ['Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado', 'Domingo'] %}
+                                    <option value="{{ dia }}" {% if reajuste_dados and reajuste_dados.dia_atual == dia %}selected{% endif %}>{{ dia }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Turno Atual</label>
+                            <select class="form-select" name="turno_atual" required>
+                                {% for turno in ['Manha', 'Tarde', 'Noite'] %}
+                                    <option value="{{ turno }}" {% if reajuste_dados and reajuste_dados.turno_atual == turno %}selected{% endif %}>{{ turno }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- DESTINO -->
+                    <h6 class="section-label mb-3 mt-4"><i class="bi bi-box-arrow-in-down-right me-2"></i>Para (Destino)</h6>
+                    <div class="row">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label class="form-label">Nova Unidade</label>
+                            <select class="form-select" name="nova_unidade" required>
+                                <option value="" disabled {% if not reajuste_dados %}selected{% endif %}>Selecione...</option>
+                                {% for u in unidades %}
+                                    <option value="{{ u.id_unidade }}" {% if reajuste_dados and reajuste_dados.nova_unidade == u.id_unidade %}selected{% endif %}>
+                                        {{ u.nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label class="form-label">Novo Dia</label>
+                            <select class="form-select" name="novo_dia" required>
+                                {% for dia in ['Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado', 'Domingo'] %}
+                                    <option value="{{ dia }}" {% if reajuste_dados and reajuste_dados.novo_dia == dia %}selected{% endif %}>{{ dia }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Novo Turno</label>
+                            <select class="form-select" name="novo_turno" required>
+                                {% for turno in ['Manha', 'Tarde', 'Noite'] %}
+                                    <option value="{{ turno }}" {% if reajuste_dados and reajuste_dados.novo_turno == turno %}selected{% endif %}>{{ turno }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary rounded-3 px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-dark rounded-3 px-4"><i class="bi bi-check2-circle me-1"></i> Executar Reajuste</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Script JS para reabrir o Modal automaticamente em caso de erro -->
+{% if reajuste_erro %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var modalElement = document.getElementById('modalReajusteEscala');
+        if (modalElement) {
+            var modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    });
+</script>
+{% endif %}
+{% endif %}
+
+<!-- ============================================================ -->
+<!-- ESTILOS CORPORATIVOS -->
+<!-- ============================================================ -->
+<style>
+    .transition-hover {
+        transition: all .2s ease-in-out;
+    }
+    .transition-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 .25rem .5rem rgba(0,0,0,.08);
+    }
+    
+    .modal-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+    }
+
+    .section-label {
+        text-transform: uppercase;
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        color: #495057;
+        padding-bottom: .6rem;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    .corporate-modal .modal-header,
+    .corporate-modal .modal-footer {
+        background-color: #fff;
+    }
+
+    .corporate-modal .form-label {
+        color: #6c757d;
+        font-size: .8rem;
+        font-weight: 600;
+        margin-bottom: .35rem;
+    }
+    .corporate-modal .form-select {
+        border-radius: .6rem;
+        border-color: #dee2e6;
+    }
+    .corporate-modal .form-select:focus {
+        border-color: rgba(33, 37, 41, .5);
+        box-shadow: 0 0 0 .2rem rgba(33, 37, 41, .12);
+    }
+</style>
+{% endblock %}

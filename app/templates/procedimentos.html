@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- ============================================================ -->
+<!-- CABEÇALHO -->
+<!-- ============================================================ -->
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 pb-3 border-bottom">
+    <div>
+        <span class="text-uppercase small fw-semibold text-primary d-block mb-1" style="letter-spacing:.08em;">
+            Gestão Clínica
+        </span>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-heart-pulse text-primary me-2"></i>Catálogo de Procedimentos
+        </h2>
+        <p class="text-muted mb-0">Relação de procedimentos e recálculo dinâmico de tempos médios.</p>
+    </div>
+    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-medium" title="Atualizado pela trg_atualiza_media_procedimentos">
+        <i class="bi bi-lightning-charge-fill me-1 text-warning"></i> Médias Atualizadas via Trigger
+    </span>
+</div>
+
+<!-- ============================================================ -->
+<!-- CONTEÚDO PRINCIPAL (CARD & TABELA) -->
+<!-- ============================================================ -->
+<div class="card border-0 shadow-sm rounded-4 mb-5">
+    <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex align-items-center gap-3">
+        <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+            <i class="bi bi-list-ul fs-5"></i>
+        </div>
+        <h5 class="fw-bold text-dark mb-0">Procedimentos Cadastrados</h5>
+    </div>
+    
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4 text-uppercase small text-muted fw-semibold">Código</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Procedimento</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Nível de Risco</th>
+                        <th class="text-uppercase small text-muted fw-semibold pe-4">Tempo Médio Calculado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for proc in procedimentos %}
+                    <tr>
+                        <td class="ps-4">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill fw-semibold font-monospace px-2 py-1">{{ proc.codigo }}</span>
+                        </td>
+                        <td class="fw-semibold text-dark">{{ proc.nome }}</td>
+                        <td>
+                            {% if proc.nivel_risco == 'ALTO' %}
+                                <span class="badge bg-danger-subtle text-danger rounded-pill fw-medium px-3 py-1"><i class="bi bi-exclamation-octagon me-1"></i> Alto</span>
+                            {% elif proc.nivel_risco == 'MEDIO' %}
+                                <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill fw-medium px-3 py-1"><i class="bi bi-exclamation-triangle me-1"></i> Médio</span>
+                            {% else %}
+                                <span class="badge bg-success-subtle text-success rounded-pill fw-medium px-3 py-1"><i class="bi bi-check-circle me-1"></i> Baixo</span>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4">
+                            <div class="d-inline-flex align-items-center bg-light border rounded-pill px-3 py-1">
+                                <i class="bi bi-stopwatch text-primary me-2"></i>
+                                <span class="text-dark fw-bold fs-6">{{ proc.tempo_medio_minutos }} <small class="text-muted fw-normal fs-6">min</small></span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox fs-3 d-block mb-2 text-body-tertiary"></i>
+                            Nenhum procedimento registrado.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Suaviza a transição do hover na tabela para manter o padrão corporativo */
+    .table-hover tbody tr {
+        transition: background-color 0.15s ease-in-out;
+    }
+</style>
+{% endblock %}

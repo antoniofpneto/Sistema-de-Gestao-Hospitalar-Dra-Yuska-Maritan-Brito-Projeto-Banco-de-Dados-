@@ -1,10 +1,14 @@
 # app.py
 import os
-from flask import Flask, render_template, request, redirect, url_for
-from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade, Procedimento
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade, Procedimento, Profissional, Escala, EspecialidadeProfissional, AuditoriaAtendimento, Internacao
+import consultas_avancadas as ca
 from dotenv import load_dotenv, find_dotenv
-from sqlalchemy import func, text
+from sqlalchemy import func, text, or_
 from datetime import date, datetime
+import threading
+import time
+import random
 
 # carrregar as variáveis de ambiente para a memória
 load_dotenv(find_dotenv())
@@ -12,6 +16,9 @@ load_dotenv(find_dotenv())
 os.environ["PGCLIENTENCODING"] = "utf-8" #[cite: 3]
 
 app = Flask(__name__)
+
+# Habilitar a assinatura criptográfica de sessões
+app.secret_key = 'chave_secreta_hospital_ufpb_2026'
 
 # Puxa os dados da memória de forma segura
 db_user = os.getenv('DB_USER')
@@ -48,17 +55,52 @@ app.jinja_env.filters['telefone'] = format_telefone
 
 @app.route('/')
 def dashboard():
-    # Buscamos o primeiro registro de cada entidade para montar os links da apresentação dinamicamente
+    # Buscamos o primeiro registro de cada entidade
     primeiro_paciente = Paciente.query.first()
     primeiro_residente = Residente.query.first()
     primeiro_atendimento = Atendimento.query.first()
     
-    # Prevenção: se o banco estiver vazio, não quebra a interface
+    # Prevenção contra banco vazio
     id_pac = primeiro_paciente.id_pessoa if primeiro_paciente else 0
     id_res = primeiro_residente.id_profissional if primeiro_residente else 0
     id_atend = primeiro_atendimento.id_atendimento if primeiro_atendimento else 0
     
-    return render_template('dashboard.html', id_pac=id_pac, id_res=id_res, id_atend=id_atend)
+    # Dados do Gráfico
+    unidades_nomes = []
+    unidades_tempos = []
+    
+    try:
+        with db.engine.begin() as connection:
+            # Cria um cursor dinâmico
+            connection.execute(text("BEGIN;"))
+            
+            # Chama a procedure passando um nome de cursor
+            connection.execute(text("CALL sp_calcular_tempo_medio_espera('resultado_cursor');"))
+            
+            # Recupera os dados de dentro do cursor e converte em dicionários mapeados
+            cursor_result = connection.execute(text("FETCH ALL FROM resultado_cursor;"))
+            resultados = cursor_result.mappings().all()
+            
+            # Fecha a transação do cursor
+            connection.execute(text("CLOSE resultado_cursor; COMMIT;"))
+        
+        for linha in resultados:
+            # Eixo X: Rótulos (Labels)
+            unidades_nomes.append(linha['nome_unidade'])
+            # Eixo Y: Dados (Data)
+            unidades_tempos.append(float(linha['tempo_medio_espera_minutos']))
+            
+    except Exception as e:
+        print(f"[Aviso] Falha ao executar a SP sp_calcular_tempo_medio_espera: {e}")
+    
+    return render_template(
+        'dashboard.html', 
+        id_pac=id_pac, 
+        id_res=id_res, 
+        id_atend=id_atend,
+        unidades_nomes=unidades_nomes,
+        unidades_tempos=unidades_tempos
+    )
 
 
 @app.route('/paciente/deletar/<int:id>', methods=['POST'])
@@ -158,7 +200,17 @@ def listar_pacientes():
 def detalhe_paciente(id_pessoa):
     # Busca o paciente específico pelo ID; se não achar, retorna erro 404
     paciente = Paciente.query.get_or_404(id_pessoa)
-    return render_template('paciente_detalhe.html', paciente=paciente)
+
+    internacao_ativa = Internacao.query.filter_by(
+        id_paciente=id_pessoa, 
+        data_hora_saida=None
+    ).first()
+
+    return render_template(
+        'paciente_detalhe.html',
+        paciente=paciente, 
+        internacao_ativa=internacao_ativa
+    )
 
 
 
@@ -342,8 +394,292 @@ def listar_profissionais():
                            preceptores=preceptores, 
                            residentes_stats=residentes_stats)
 
+@app.route('/profissional/<int:id_prof>')
+def profissional_detalhe(id_prof):
+    # Busca o profissional base
+    profissional = Profissional.query.get_or_404(id_prof)
+    
+    # Descobre se é Residente ou Preceptor
+    residente = Residente.query.filter_by(id_profissional=id_prof).first()
+    preceptor = Preceptor.query.filter_by(id_profissional=id_prof).first()
+    
+    # Define as variáveis dinâmicas para o Jinja2
+    if residente:
+        tipo_profissional = "Residente"
+        # Ano de residência para residentes
+        dado_especifico = residente.ano_residencia 
+    elif preceptor:
+        tipo_profissional = "Preceptor"
+        # Titulação para preceptores
+        dado_especifico = preceptor.titulacao 
+    else:
+        tipo_profissional = "Indefinido"
+        dado_especifico = "N/A"
+
+    # Busca as especialidades (Assumindo que você tem um model EspecialidadeProfissional)
+    especialidades = EspecialidadeProfissional.query.filter_by(id_profissional=id_prof).all()
+
+    # Busca a escala onde ele aparece como residente OU como preceptor
+    escalas = Escala.query.filter(
+        or_(Escala.id_residente == id_prof, Escala.id_preceptor == id_prof)
+    ).all()
+
+    unidades = Unidade.query.all()
+
+    # Recupera dados salvos na sessão em caso de erro anterior no formulário
+    reajuste_dados = session.pop('reajuste_dados', None)
+    reajuste_erro = session.pop('reajuste_erro', None)
+
+    return render_template(
+        'profissional_detalhe.html',
+        profissional=profissional,
+        tipo_profissional=tipo_profissional,
+        dado_especifico=dado_especifico,
+        especialidades=especialidades,
+        escalas=escalas,
+        unidades=unidades,
+        reajuste_dados=reajuste_dados,
+        reajuste_erro=reajuste_erro
+    )
+
+@app.route('/escala/reajustar', methods=['POST'])
+def reajustar_escala():
+    id_residente = request.form.get('id_residente')
+    id_unidade_origem = request.form.get('unidade_atual')
+    dia_origem = request.form.get('dia_atual')
+    turno_origem = request.form.get('turno_atual')
+    
+    id_unidade_destino = request.form.get('nova_unidade')
+    dia_destino = request.form.get('novo_dia')
+    turno_destino = request.form.get('novo_turno')
+
+    try:
+        with db.engine.connect() as connection:
+            trans = connection.begin()
+            
+            # Aqui garantimos a chamada com a assinatura exata da sua SP
+            query = text("""
+                CALL sp_reajustar_escala(
+                    :p_id, :p_uni_orig, :p_dia_orig, :p_turno_orig, 
+                    :p_uni_dest, :p_dia_dest, :p_turno_dest
+                )
+            """)
+            
+            connection.execute(query, {
+                "p_id": id_residente,
+                "p_uni_orig": id_unidade_origem,
+                "p_dia_orig": dia_origem,
+                "p_turno_orig": turno_origem,
+                "p_uni_dest": id_unidade_destino,
+                "p_dia_dest": dia_destino,
+                "p_turno_dest": turno_destino
+            })
+            
+            trans.commit()
+            flash("[SUCESSO] Escala reajustada com sucesso!", "success")
+            
+    except Exception as e:
+        msg_erro = "Erro ao reajustar escala."
+        if hasattr(e, 'orig') and hasattr(e.orig, 'pgerror') and e.orig.pgerror:
+            msg_erro = e.orig.pgerror.split('\n')[0].replace('ERROR:', '').strip()
+        else:
+            msg_erro = str(e).split('CONTEXT:')[0].replace('(psycopg2.errors.RaiseException)', '').strip()
+
+        session['reajuste_erro'] = msg_erro
+        session['reajuste_dados'] = {
+            'unidade_atual': int(id_unidade_origem) if id_unidade_origem else None,
+            'dia_atual': dia_origem,
+            'turno_atual': turno_origem,
+            'nova_unidade': int(id_unidade_destino) if id_unidade_destino else None,
+            'novo_dia': dia_destino,
+            'novo_turno': turno_destino
+        }
+
+    return redirect(url_for('profissional_detalhe', id_prof=id_residente))
+
+@app.route('/auditoria/atendimentos')
+def auditoria_atendimentos():
+    # Supondo que você mapeie a model AuditoriaAtendimento 
+    # ou faça via SQL puro / ORM
+    auditorias = AuditoriaAtendimento.query.order_by(AuditoriaAtendimento.data_hora.desc()).all()
+    
+    return render_template('auditoria_atendimentos.html', auditorias=auditorias)
+
+@app.route('/atendimento/editar/<int:id_atendimento>', methods=['POST'])
+def editar_atendimento(id_atendimento):
+    atendimento = Atendimento.query.get_or_404(id_atendimento)
+    
+    try:
+        from datetime import datetime
+        
+        # Captura e atualiza a data/hora e a duração
+        nova_data_hora = request.form.get('data_hora')
+        atendimento.data_hora = datetime.strptime(nova_data_hora, '%Y-%m-%dT%H:%M')
+        atendimento.duracao_minutos = int(request.form.get('duracao_minutos'))
+        
+        # Captura e atualiza as chaves estrangeiras vindas dos 'selects' do modal
+        atendimento.id_paciente = int(request.form.get('id_paciente'))
+        atendimento.id_residente = int(request.form.get('id_residente'))
+        atendimento.id_preceptor = int(request.form.get('id_preceptor'))
+        atendimento.id_unidade = int(request.form.get('id_unidade'))
+        
+        # O commit dispara o UPDATE na tabela, ativando automaticamente a trigger de auditoria
+        db.session.commit()
+        flash("Atendimento atualizado com sucesso! Verifique a auditoria.", "success")
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erro ao atualizar atendimento: {e}", "danger")
+        
+    return redirect(url_for('listar_atendimentos'))
+
+
+@app.route('/atendimento/excluir/<int:id_atendimento>', methods=['POST'])
+def excluir_atendimento(id_atendimento):
+    atendimento = Atendimento.query.get_or_404(id_atendimento)
+    
+    try:
+        # Remove dependências diretas se houver (ex: procedimentos realizados vinculados)
+        # db.session.query(ProcedimentoRealizado).filter_by(id_atendimento=id_atendimento).delete()
+        
+        db.session.delete(atendimento)
+        
+        # O commit dispara o DELETE na tabela, ativando automaticamente a trigger de auditoria (DELETE)
+        db.session.commit()
+        flash("Atendimento excluído com sucesso! Verifique a auditoria.", "warning")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erro ao excluir atendimento (pode possuir procedimentos vinculados): {e}", "danger")
+        
+    return redirect(url_for('listar_atendimentos'))
+
+@app.route('/procedimentos')
+def listar_procedimentos():
+    procedimentos = Procedimento.query.order_by(Procedimento.nome).all()
+    return render_template('procedimentos.html', procedimentos=procedimentos)
+
+@app.route('/pacientes/internados')
+def pacientes_internados():
+    # Consulta direta à View abstraindo a complexidade dos relacionamentos
+    query = text("SELECT * FROM vw_pacientes_internados ORDER BY data_hora_entrada DESC")
+    
+    # Executa a query e busca todos os resultados
+    internados = db.session.execute(query).fetchall()
+    
+    return render_template('pacientes_internados.html', internados=internados)
+
+@app.route('/residentes/alerta-supervisao')
+def alertas_supervisao():
+    # Executa a view ordenando pelo nome do residente para facilitar a leitura
+    query = text("SELECT * FROM vw_residentes_sem_supervisor ORDER BY nome_residente, nome_unidade")
+    
+    alertas = db.session.execute(query).fetchall()
+    
+    return render_template('alertas_supervisao.html', alertas=alertas)
+
+@app.route('/estatisticas/mensais')
+def estatisticas_mensais():
+    # Consulta a view agregada. O banco entrega a métrica mastigada.
+    query = text("SELECT * FROM vw_estatisticas_atendimentos_mensal ORDER BY mes DESC, nome_unidade")
+    estatisticas = db.session.execute(query).fetchall()
+    
+    return render_template('estatisticas_mensais.html', estatisticas=estatisticas)
+
+@app.route('/consultas-avancadas')
+def consultas_avancadas():
+    return render_template(
+        'consultas_avancadas.html',
+        preceptores_flamenguistas=ca.preceptores_de_atendimentos_a_flamenguistas(),
+        ultimos_atendimentos=ca.ultimo_atendimento_por_paciente(),
+        percentuais_alto_risco=ca.percentual_alto_risco_por_residente(),
+    )
+
+# Rota de mostras a simulação
+@app.route('/concorrencia')
+def concorrencia_view():
+    # Rota que renderiza a página visual
+    return render_template('concorrencia.html')
+
+@app.route('/api/simular-concorrencia', methods=['POST'])
+def api_simular_concorrencia():
+    logs = []
+    lock_logs = threading.Lock() # Protege a lista de logs para as threads escreverem juntas
+
+    # Cria uma barreira que só abre quando 2 threads chegarem
+    largada = threading.Barrier(2)
+
+    # Função auxiliar para guardar os prints na nossa lista
+    def registrar_log(mensagem):
+        with lock_logs:
+            logs.append(mensagem)
+
+    # A mesma lógica do seu script, mas enviando para o registrar_log()
+    def simular_agendamento(nome_thread, id_residente, id_preceptor, id_unidade, dia, turno):
+        with app.app_context():
+
+            # O codigo só continua quando as duas threads chegarem aqui
+            largada.wait()
+
+            # Espera um tempo aleatorio entre 1 e 15 milisegundo para a thread 1 conseguir acordar
+            time.sleep(random.uniform(0.001, 0.015))
+
+            registrar_log(f"[{nome_thread}] Iniciando transação...")
+            try:
+                registrar_log(f"[{nome_thread}] Solicitando lock para o Residente {id_residente}...")
+                
+                residente = db.session.query(Residente).filter_by(id_profissional=id_residente).with_for_update().first()
+                
+                if not residente:
+                    registrar_log(f"[{nome_thread}] ❌ ERRO: Residente não encontrado.")
+                    db.session.rollback()
+                    return
+
+                registrar_log(f"[{nome_thread}] 🔒 Lock adquirido! Processando (simulação de 3s)...")
+                time.sleep(3)
+
+                escala_existente = db.session.query(Escala).filter_by(
+                    id_residente=id_residente, dia_semana=dia, turno=turno
+                ).first()
+
+                if escala_existente:
+                    registrar_log(f"[{nome_thread}] 🛑 CONFLITO DETECTADO: Vaga já preenchida. Abortando transação.")
+                    db.session.rollback()
+                    return
+
+                nova_escala = Escala(
+                    id_unidade=id_unidade, id_residente=id_residente,
+                    id_preceptor=id_preceptor, dia_semana=dia, turno=turno
+                )
+                db.session.add(nova_escala)
+                db.session.commit()
+                registrar_log(f"[{nome_thread}] ✅ SUCESSO: Escala cadastrada e Lock liberado.")
+
+            except Exception as e:
+                db.session.rollback()
+                registrar_log(f"[{nome_thread}] ❌ ERRO REAL: {repr(e)}")
+
+    # Apaga a escala, se existir, para podermos clicar no botão várias vezes sem travar na primeira
+    with app.app_context():
+        db.session.query(Escala).filter_by(id_residente=6, dia_semana='Quinta', turno='Noite').delete()
+        db.session.commit()
+
+    # Variáveis de teste
+    ID_RES, ID_PRE, ID_UNI, DIA, TURNO = 6, 11, 1, 'Quinta', 'Noite'
+
+    t1 = threading.Thread(target=simular_agendamento, args=("Thread-1", ID_RES, ID_PRE, ID_UNI, DIA, TURNO))
+    t2 = threading.Thread(target=simular_agendamento, args=("Thread-2", ID_RES, ID_PRE, ID_UNI, DIA, TURNO))
+
+    t1.start()
+    # time.sleep(0.5) # Retirando a espera entre as threads
+    t2.start()
+
+    t1.join()
+    t2.join()
+
+    # Retorna a lista de mensagens para o JavaScript desenhar na tela
+    return jsonify({"status": "sucesso", "logs": logs})
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all() # Cria as tabelas caso não existam (útil para testes, mas no seu caso o script SQL já fez isso)
+        db.create_all() 
     app.run(debug=True)

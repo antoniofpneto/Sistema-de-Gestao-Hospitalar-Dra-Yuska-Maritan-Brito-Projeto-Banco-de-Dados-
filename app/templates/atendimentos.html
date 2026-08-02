@@ -25,6 +25,7 @@
                         <th>Data/Hora</th>
                         <th>Unidade</th>
                         <th>Duração</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -36,6 +37,19 @@
                         <td>{{ a.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
                         <td><span class="badge bg-primary">{{ a.unidade.nome }}</span></td>
                         <td>{{ a.duracao_minutos }} min</td>
+                        <td onclick="event.stopPropagation();">
+                            <!-- Botão Editar (Abre Modal) -->
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modalEditar{{ a.id_atendimento }}" title="Editar Atendimento">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+                            
+                            <!-- Botão Excluir (Link direto para rota de delete) -->
+                            <form action="/atendimento/excluir/{{ a.id_atendimento }}" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja excluir este atendimento? Isso gerará um registro de auditoria.');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir Atendimento">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                     {% else %}
                     <tr>
@@ -47,6 +61,92 @@
         </div>
     </div>
 </div>
+
+<!-- Modais de Edição para cada Atendimento -->
+{% for atendimento in atendimentos %}
+<div class="modal fade" id="modalEditar{{ atendimento.id_atendimento }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Editar Atendimento #{{ atendimento.id_atendimento }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/atendimento/editar/{{ atendimento.id_atendimento }}" method="POST">
+                <div class="modal-body text-start">
+                    
+                    <div class="row">
+                        <!-- Primeira Coluna -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small mb-1">Paciente</label>
+                            <select class="form-select" name="id_paciente" required>
+                                {% for pac in pacientes %}
+                                    <option value="{{ pac.id_pessoa }}" {% if atendimento.id_paciente == pac.id_pessoa %}selected{% endif %}>
+                                        {{ pac.pessoa.nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small mb-1">Unidade</label>
+                            <select class="form-select" name="id_unidade" required>
+                                {% for uni in unidades %}
+                                    <option value="{{ uni.id_unidade }}" {% if atendimento.id_unidade == uni.id_unidade %}selected{% endif %}>
+                                        {{ uni.nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Segunda Coluna -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small mb-1">Residente</label>
+                            <select class="form-select" name="id_residente" required>
+                                {% for res in residentes %}
+                                    <option value="{{ res.id_profissional }}" {% if atendimento.id_residente == res.id_profissional %}selected{% endif %}>
+                                        {{ res.pessoa.nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small mb-1">Preceptor</label>
+                            <select class="form-select" name="id_preceptor" required>
+                                {% for pre in preceptores %}
+                                    <option value="{{ pre.id_profissional }}" {% if atendimento.id_preceptor == pre.id_profissional %}selected{% endif %}>
+                                        {{ pre.pessoa.nome }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="text-muted">
+
+                    <div class="row">
+                        <div class="col-md-7 mb-3">
+                            <label class="form-label text-muted small mb-1">Data e Hora</label>
+                            <input type="datetime-local" class="form-control" name="data_hora" value="{{ atendimento.data_hora.strftime('%Y-%m-%dT%H:%M') }}" required>
+                        </div>
+                        <div class="col-md-5 mb-3">
+                            <label class="form-label text-muted small mb-1">Duração (Min)</label>
+                            <input type="number" class="form-control" name="duracao_minutos" value="{{ atendimento.duracao_minutos }}" required>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
 
 <!-- Modal de Novo Atendimento -->
 <div class="modal fade" id="modalNovoAtendimento" tabindex="-1">

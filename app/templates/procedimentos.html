@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-heart-pulse"></i> Catálogo de Procedimentos</h2>
+    <span class="badge bg-success">Médias Atualizadas via Trigger</span>
+</div>
+
+<div class="card shadow-sm border-primary">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Código</th>
+                        <th>Procedimento</th>
+                        <th>Nível de Risco</th>
+                        <th>Tempo Médio Calculado (Minutos)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for proc in procedimentos %}
+                    <tr>
+                        <td class="ps-3 text-muted"><strong>{{ proc.codigo }}</strong></td>
+                        <td>{{ proc.nome }}</td>
+                        <td>
+                            {% if proc.nivel_risco == 'ALTO' %}
+                                <span class="badge bg-danger">Alto</span>
+                            {% elif proc.nivel_risco == 'MEDIO' %}
+                                <span class="badge bg-warning text-dark">Médio</span>
+                            {% else %}
+                                <span class="badge bg-success">Baixo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- Destaque visual para o campo dinâmico -->
+                            <span class="fs-5 fw-bold text-primary">{{ proc.tempo_medio_minutos }}</span> min
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

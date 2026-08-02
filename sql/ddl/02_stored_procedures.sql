@@ -104,8 +104,10 @@ $$;
 
 CREATE OR REPLACE PROCEDURE sp_reajustar_escala(
     IN p_id_residente INT,
+    IN p_id_unidade_origem INT,
     IN p_dia_origem VARCHAR,
     IN p_turno_origem VARCHAR,
+    IN p_id_unidade_destino INT,
     IN p_dia_destino VARCHAR,
     IN p_turno_destino VARCHAR
 )
@@ -113,35 +115,33 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     r RECORD;
+    v_linhas_afetadas INT := 0;
 BEGIN
-    IF p_dia_origem = p_dia_destino AND p_turno_origem = p_turno_destino THEN
-        RAISE EXCEPTION 'Origem e destino não podem ser iguais';
+    -- Evita transação nula
+    IF p_id_unidade_origem = p_id_unidade_destino AND p_dia_origem = p_dia_destino AND p_turno_origem = p_turno_destino THEN
+        RAISE EXCEPTION 'A origem e o destino selecionados são idênticos.';
     END IF;
 
     FOR r IN
-        SELECT id_escala, id_unidade
+        SELECT id_escala
         FROM ESCALA
         WHERE id_residente = p_id_residente
+          AND id_unidade = p_id_unidade_origem
           AND dia_semana = p_dia_origem
           AND turno = p_turno_origem
     LOOP
-        IF EXISTS (
-            SELECT 1
-            FROM ESCALA
-            WHERE id_unidade = r.id_unidade
-              AND id_residente = p_id_residente
-              AND dia_semana = p_dia_destino
-              AND turno = p_turno_destino
-              AND id_escala <> r.id_escala
-        ) THEN
-            RAISE EXCEPTION 'Conflito de escala para o residente % na unidade %', p_id_residente, r.id_unidade;
-        END IF;
+        v_linhas_afetadas := v_linhas_afetadas + 1;
 
         UPDATE ESCALA
-        SET dia_semana = p_dia_destino,
+        SET id_unidade = p_id_unidade_destino,
+            dia_semana = p_dia_destino,
             turno = p_turno_destino
         WHERE id_escala = r.id_escala;
     END LOOP;
+
+    IF v_linhas_afetadas = 0 THEN
+        RAISE EXCEPTION 'Nenhuma escala encontrada na origem (Unidade %, %, %).', p_id_unidade_origem, p_dia_origem, p_turno_origem;
+    END IF;
 END;
 $$;
 
@@ -169,59 +169,55 @@ $$;
 
 -- Função do trigger de auditoria de atendimento
 CREATE OR REPLACE FUNCTION trg_audita_atendimento_fn()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
+RETURNS TRIGGER AS $$
 DECLARE
-    v_usuario VARCHAR(50) := current_user;
+    v_antigo JSONB := NULL;
+    v_novo JSONB := NULL;
 BEGIN
-    IF TG_OP = 'INSERT' THEN
-        INSERT INTO AUDITORIA_ATENDIMENTO (
-            id_atendimento,
-            operacao,
-            usuario,
-            dados_antigos,
-            dados_novos
-        ) VALUES (
-            NEW.id_atendimento,
-            'Insercao',
-            v_usuario,
-            NULL,
-            row_to_json(NEW)::jsonb
-        );
-    ELSIF TG_OP = 'UPDATE' THEN
-        INSERT INTO AUDITORIA_ATENDIMENTO (
-            id_atendimento,
-            operacao,
-            usuario,
-            dados_antigos,
-            dados_novos
-        ) VALUES (
-            NEW.id_atendimento,
-            'Atualizacao',
-            v_usuario,
-            row_to_json(OLD)::jsonb,
-            row_to_json(NEW)::jsonb
-        );
-    ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO AUDITORIA_ATENDIMENTO (
-            id_atendimento,
-            operacao,
-            usuario,
-            dados_antigos,
-            dados_novos
-        ) VALUES (
-            OLD.id_atendimento,
-            'Exclusao',
-            v_usuario,
-            row_to_json(OLD)::jsonb,
-            NULL
+    -- Monta o objeto JSON formatado para os dados ANTIGOS (usado em UPDATE e DELETE)
+    IF (TG_OP = 'DELETE' OR TG_OP = 'UPDATE') THEN
+        v_antigo := jsonb_build_object(
+            'Data e Hora', OLD.data_hora,
+            'Duração (Min)', OLD.duracao_minutos,
+            'Unidade', (SELECT nome FROM UNIDADE WHERE id_unidade = OLD.id_unidade),
+            'Paciente', (SELECT nome FROM PESSOA WHERE id_pessoa = OLD.id_paciente),
+            'Residente', (SELECT nome FROM PESSOA WHERE id_pessoa = OLD.id_residente),
+            'Preceptor', (SELECT nome FROM PESSOA WHERE id_pessoa = OLD.id_preceptor)
         );
     END IF;
 
+    -- Monta o objeto JSON formatado para os dados NOVOS (usado em INSERT e UPDATE)
+    IF (TG_OP = 'INSERT' OR TG_OP = 'UPDATE') THEN
+        v_novo := jsonb_build_object(
+            'Data e Hora', NEW.data_hora,
+            'Duração (Min)', NEW.duracao_minutos,
+            'Unidade', (SELECT nome FROM UNIDADE WHERE id_unidade = NEW.id_unidade),
+            'Paciente', (SELECT nome FROM PESSOA WHERE id_pessoa = NEW.id_paciente),
+            'Residente', (SELECT nome FROM PESSOA WHERE id_pessoa = NEW.id_residente),
+            'Preceptor', (SELECT nome FROM PESSOA WHERE id_pessoa = NEW.id_preceptor)
+        );
+    END IF;
+
+    -- Executa a inserção na tabela de Auditoria dependendo da operação
+    IF (TG_OP = 'DELETE') THEN
+        INSERT INTO AUDITORIA_ATENDIMENTO (id_atendimento, operacao, usuario, dados_antigos, dados_novos)
+        VALUES (OLD.id_atendimento, 'Exclusao', current_user, v_antigo, NULL);
+        RETURN OLD;
+        
+    ELSIF (TG_OP = 'UPDATE') THEN
+        INSERT INTO AUDITORIA_ATENDIMENTO (id_atendimento, operacao, usuario, dados_antigos, dados_novos)
+        VALUES (NEW.id_atendimento, 'Atualizacao', current_user, v_antigo, v_novo);
+        RETURN NEW;
+        
+    ELSIF (TG_OP = 'INSERT') THEN
+        INSERT INTO AUDITORIA_ATENDIMENTO (id_atendimento, operacao, usuario, dados_antigos, dados_novos)
+        VALUES (NEW.id_atendimento, 'Insercao', current_user, NULL, v_novo);
+        RETURN NEW;
+    END IF;
+    
     RETURN NULL;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 -- Função do trigger de atualização de média de procedimentos
 CREATE OR REPLACE FUNCTION trg_atualiza_media_procedimentos_fn()

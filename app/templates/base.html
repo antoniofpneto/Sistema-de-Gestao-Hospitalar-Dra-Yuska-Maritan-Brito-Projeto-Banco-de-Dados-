@@ -11,35 +11,71 @@
 </head>
 <body class="bg-light">
 
+    <style>
+        /* Transição suave para todos os links */
+        .nav-hover-effect {
+            transition: all 0.3s ease !important; 
+            border-radius: 6px; /* Deixa os cantos do fundo escuro arredondados */
+        }
+
+        /* O que acontece quando o mouse passa por cima */
+        .nav-hover-effect:hover {
+            background-color: rgba(0, 0, 0, 0.2) !important; /* Fundo preto com 20% de opacidade */
+            transform: translateY(-3px); /* Faz o link "saltar" 3 pixels para cima */
+        }
+
+        /* Efeito especial para o botão amarelo de concorrência */
+        .btn-hover-jump {
+            transition: all 0.3s ease !important;
+        }
+        
+        .btn-hover-jump:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15) !important; /* Aumenta a sombra quando ele pula */
+        }
+    </style>
+
     <!-- Menu de Navegação Superior -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
-        <div class="container-fluid">
-            <a class="navbar-brand text-white fw-bold" href="{{ url_for('dashboard') }}">🏥 Hospital Dra. Yuska</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4 py-2">
+        <div class="container-fluid px-4">
+            <!-- Logo / Brand -->
+            <a class="navbar-brand text-white fw-bold d-flex align-items-center" href="{{ url_for('dashboard') }}">
+                <span class="fs-4 me-2">🏥</span> Hospital Dra. Yuska
+            </a>
+            
+            <!-- Botão Mobile -->
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            
+            <!-- Links da Navegação -->
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
+                <!-- ms-auto joga os itens para a direita, gap-2 dá espaçamento entre eles -->
+                <ul class="navbar-nav ms-auto gap-2 align-items-lg-center">
+                    
+                    <!-- ADICIONADO: nav-hover-effect e px-3 em todos os links -->
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ url_for('listar_pacientes') }}">Pacientes</a>
+                        <a class="nav-link text-white px-3 nav-hover-effect" href="{{ url_for('listar_pacientes') }}">Pacientes</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ url_for('listar_profissionais') }}">Profissionais</a>.
+                        <a class="nav-link text-white px-3 nav-hover-effect" href="{{ url_for('listar_profissionais') }}">Profissionais</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ url_for('listar_atendimentos') }}">Atendimentos</a>
+                        <a class="nav-link text-white px-3 nav-hover-effect" href="{{ url_for('listar_atendimentos') }}">Atendimentos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ url_for('consultas_avancadas') }}">Consultas Avançadas</a>
+                        <a class="nav-link text-white px-3 nav-hover-effect" href="{{ url_for('consultas_avancadas') }}">Consultas Avançadas</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ url_for('auditoria_atendimentos') }}">Auditoria de Atendimentos</a>
+                        <a class="nav-link text-white px-3 nav-hover-effect" href="{{ url_for('auditoria_atendimentos') }}">Auditoria</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ url_for('listar_procedimentos') }}">Procedimentos</a>
+                        <a class="nav-link text-white px-3 nav-hover-effect" href="{{ url_for('listar_procedimentos') }}">Procedimentos</a>
                     </li>
+                    
+                    <!-- ADICIONADO: Botão de Teste Destacado com a classe btn-hover-jump -->
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{{ url_for('concorrencia_view') }}">Testar Concorrência</a>
+                        <a class="nav-link text-white px-3 nav-hover-effect" href="{{ url_for('concorrencia_view') }}"> Testar Concorrência</a>
                     </li>
                 </ul>
             </div>

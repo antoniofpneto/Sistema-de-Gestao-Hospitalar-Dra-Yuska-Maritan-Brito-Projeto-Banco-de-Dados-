@@ -26,7 +26,7 @@ WHERE i.data_hora_saida IS NULL;
 
 -- View que retorna os residentes que ou não tem supervisor ou tem supervisor que não é um doutor
 CREATE OR REPLACE VIEW vw_residentes_sem_supervisor AS
-SELECT DISTINCT
+SELECT DISTINCT ON (e.id_residente)
     e.id_residente,
     resp.nome AS nome_residente,
     e.id_unidade,

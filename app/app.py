@@ -8,6 +8,7 @@ from sqlalchemy import func, text, or_
 from datetime import date, datetime
 import threading
 import time
+import random
 
 # carrregar as variáveis de ambiente para a memória
 load_dotenv(find_dotenv())
@@ -591,11 +592,11 @@ def concorrencia_view():
 
 @app.route('/api/simular-concorrencia', methods=['POST'])
 def api_simular_concorrencia():
-    import threading
-    import time
-    
     logs = []
     lock_logs = threading.Lock() # Protege a lista de logs para as threads escreverem juntas
+
+    # Cria uma barreira que só abre quando 2 threads chegarem
+    largada = threading.Barrier(2)
 
     # Função auxiliar para guardar os prints na nossa lista
     def registrar_log(mensagem):
@@ -605,6 +606,13 @@ def api_simular_concorrencia():
     # A mesma lógica do seu script, mas enviando para o registrar_log()
     def simular_agendamento(nome_thread, id_residente, id_preceptor, id_unidade, dia, turno):
         with app.app_context():
+
+            # O codigo só continua quando as duas threads chegarem aqui
+            largada.wait()
+
+            # Espera um tempo aleatorio entre 1 e 15 milisegundo para a thread 1 conseguir acordar
+            time.sleep(random.uniform(0.001, 0.015))
+
             registrar_log(f"[{nome_thread}] Iniciando transação...")
             try:
                 registrar_log(f"[{nome_thread}] Solicitando lock para o Residente {id_residente}...")

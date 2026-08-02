@@ -1,90 +1,118 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-shield-check"></i> Auditoria de Atendimentos</h2>
-    <span class="badge bg-secondary text-white" title="Triggers ativas no SGBD">Monitoramento Automático (Trigger)</span>
+<!-- ============================================================ -->
+<!-- CABEÇALHO -->
+<!-- ============================================================ -->
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 pb-3 border-bottom">
+    <div>
+        <span class="text-uppercase small fw-semibold text-primary d-block mb-1" style="letter-spacing:.08em;">
+            Segurança e Compliance
+        </span>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-shield-check text-primary me-2"></i>Auditoria de Atendimentos
+        </h2>
+        <p class="text-muted mb-0">Rastreamento de log gerado automaticamente pelo SGBD.</p>
+    </div>
 </div>
 
-<div class="card shadow-sm border-secondary">
-    <div class="card-header bg-secondary text-white">
-        <h5 class="mb-0">Histórico de Modificações na Tabela ATENDIMENTO</h5>
+<!-- ============================================================ -->
+<!-- CONTEÚDO PRINCIPAL (CARD & TABELA) -->
+<!-- ============================================================ -->
+<div class="card border-0 shadow-sm rounded-4 mb-5">
+    <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-3">
+            <div class="bg-secondary-subtle text-secondary-emphasis rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                <i class="bi bi-journal-code fs-5"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-0">Histórico de Modificações (ATENDIMENTO)</h5>
+        </div>
+        <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle rounded-pill px-3 py-2" title="Triggers ativas no SGBD">
+            <i class="bi bi-lightning-charge-fill me-1 text-warning"></i> Monitoramento via Trigger
+        </span>
     </div>
+    
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-3">ID Log</th>
-                        <th>ID Atendimento</th>
-                        <th>Operação</th>
-                        <th>Usuário SGBD</th>
-                        <th>Data/Hora do Evento</th>
-                        <th>Dados Antigos (JSON)</th>
-                        <th>Dados Novos (JSON)</th>
+                        <th class="ps-4 text-uppercase small text-muted fw-semibold">ID Log</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Atendimento</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Operação</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Usuário SGBD</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Data e Hora</th>
+                        <th class="text-uppercase small text-muted fw-semibold" style="min-width: 220px;">Dados Antigos</th>
+                        <th class="text-uppercase small text-muted fw-semibold pe-4" style="min-width: 220px;">Dados Novos</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for audit in auditorias %}
                     <tr>
-                        <td class="ps-3 text-muted">#{{ audit.id_auditoria }}</td>
-                        <td><strong>{{ audit.id_atendimento }}</strong></td>
+                        <td class="ps-4 text-muted fw-medium"><small>#{{ audit.id_auditoria }}</small></td>
+                        <td><span class="fw-bold text-dark">{{ audit.id_atendimento }}</span></td>
                         <td>
                             {% if audit.operacao == 'Insercao' or audit.operacao == 'INSERT' %}
-                                <span class="badge bg-success">Inserção</span>
+                                <span class="badge bg-success-subtle text-success rounded-pill fw-medium px-3 py-1"><i class="bi bi-plus-circle me-1"></i> Inserção</span>
                             {% elif audit.operacao == 'Atualizacao' or audit.operacao == 'UPDATE' %}
-                                <span class="badge bg-primary">Atualização</span>
+                                <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium px-3 py-1"><i class="bi bi-pencil-square me-1"></i> Atualização</span>
                             {% else %}
-                                <span class="badge bg-danger">Exclusão</span>
+                                <span class="badge bg-danger-subtle text-danger rounded-pill fw-medium px-3 py-1"><i class="bi bi-trash me-1"></i> Exclusão</span>
                             {% endif %}
                         </td>
-                        <td><code>{{ audit.usuario }}</code></td>
-                        <td>{{ audit.data_hora.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                        <td>
+                            <span class="badge bg-light border text-secondary font-monospace px-2 py-1">{{ audit.usuario }}</span>
+                        </td>
+                        <td class="text-muted small fw-medium">
+                            <i class="bi bi-clock me-1"></i> {{ audit.data_hora.strftime('%d/%m/%Y %H:%M:%S') }}
+                        </td>
+                        
                         <!-- Coluna de Dados Antigos -->
                         <td>
                             {% if audit.dados_antigos %}
                                 {% if audit.dados_antigos is mapping %}
-                                    <div class="d-flex flex-column">
+                                    <div class="d-flex flex-column gap-1 my-2">
                                         {% for chave, valor in audit.dados_antigos.items() %}
-                                            <div class="small mb-1">
-                                                <strong class="text-secondary">{{ chave }}:</strong> 
-                                                <span class="text-muted">{{ valor }}</span>
+                                            <div class="small">
+                                                <span class="text-muted fw-semibold text-capitalize">{{ chave.replace('_', ' ') }}:</span> 
+                                                <span class="text-secondary text-decoration-line-through">{{ valor }}</span>
                                             </div>
                                         {% endfor %}
                                     </div>
                                 {% else %}
-                                    <!-- Fallback caso o dado venha como string pura -->
-                                    <small class="text-muted font-monospace">{{ audit.dados_antigos }}</small>
+                                    <small class="text-secondary font-monospace text-decoration-line-through">{{ audit.dados_antigos }}</small>
                                 {% endif %}
                             {% else %}
-                                <small class="text-muted">N/A</small>
+                                <span class="badge bg-light text-muted fw-normal">N/A</span>
                             {% endif %}
                         </td>
                         
                         <!-- Coluna de Dados Novos -->
-                        <td>
+                        <td class="pe-4">
                             {% if audit.dados_novos %}
                                 {% if audit.dados_novos is mapping %}
-                                    <div class="d-flex flex-column">
+                                    <div class="d-flex flex-column gap-1 my-2">
                                         {% for chave, valor in audit.dados_novos.items() %}
-                                            <div class="small mb-1">
-                                                <strong class="text-secondary">{{ chave }}:</strong> 
+                                            <div class="small">
+                                                <span class="text-muted fw-semibold text-capitalize">{{ chave.replace('_', ' ') }}:</span> 
                                                 <span class="text-success fw-medium">{{ valor }}</span>
                                             </div>
                                         {% endfor %}
                                     </div>
                                 {% else %}
-                                    <!-- Fallback caso o dado venha como string pura -->
-                                    <small class="text-success font-monospace">{{ audit.dados_novos }}</small>
+                                    <small class="text-success font-monospace fw-medium">{{ audit.dados_novos }}</small>
                                 {% endif %}
                             {% else %}
-                                <small class="text-muted">N/A</small>
+                                <span class="badge bg-light text-muted fw-normal">N/A</span>
                             {% endif %}
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-4">Nenhum registro de auditoria capturado até o momento.</td>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            <i class="bi bi-shield-x fs-3 d-block mb-2 text-body-tertiary"></i>
+                            Nenhum registro de auditoria capturado até o momento.
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

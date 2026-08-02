@@ -80,7 +80,7 @@
         <p class="text-muted">Acesso às Views implementadas.</p>
         
         <div class="list-group">
-            <!-- Operação 1 -->
+            <!-- View 1 -->
             <a href="{{ url_for('pacientes_internados') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="mb-1 text-dark">1. Pacientes Internados</h6>
@@ -89,13 +89,13 @@
                 <button class="btn btn-outline-primary btn-sm rounded-pill">Ir para Pacientes Internados</button>
             </a>
 
-            <!-- Operação 2 e 4 (Prontuário do Paciente) -->
-            <a href="/paciente/{{ id_pac }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <!-- View 2 -->
+            <a href="{{ url_for('alertas_supervisao')}}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="mb-1 text-dark">2 e 4. Atualizar Paciente & Listar Histórico</h6>
-                    <small>Edição de Convênio (Update) e Linha do Tempo de Atendimentos (Query Relacional).</small>
+                    <h6 class="mb-1 text-dark">2. Alertas de Falta de Supervisionador</h6>
+                    <small>Residentes com Supervisores não Doutores ou sem supervisão ativa</small>
                 </div>
-                <button class="btn btn-outline-success btn-sm rounded-pill">Abrir Prontuário</button>
+                <button class="btn btn-outline-success btn-sm rounded-pill">Abrir alertas de supervisor</button>
             </a>
 
             <!-- Operação 3 e 5 (Procedimentos) -->

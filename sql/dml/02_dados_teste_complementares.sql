@@ -250,7 +250,12 @@ INSERT INTO HISTORICO_PAPEL (id_profissional, papel, data_inicio, data_fim) VALU
 (31, 'Preceptor', '2003-03-01', NULL),
 (8,  'Residente', '2023-01-10', NULL),
 (27, 'Residente', '2023-11-20', NULL),
-(9,  'Residente', '2022-08-20', NULL);
+(9,  'Residente', '2022-08-20', NULL),
+(13, 'Preceptor', '2010-11-23', NULL),
+(14, 'Preceptor', '1998-06-17', NULL),
+(15, 'Preceptor', '2012-02-28', NULL),
+(32, 'Preceptor', '1998-07-22', NULL),
+(33, 'Preceptor', '2001-01-30', NULL);
 
 COMMIT;
 

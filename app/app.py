@@ -555,6 +555,15 @@ def pacientes_internados():
     
     return render_template('pacientes_internados.html', internados=internados)
 
+@app.route('/residentes/alerta-supervisao')
+def alertas_supervisao():
+    # Executa a view ordenando pelo nome do residente para facilitar a leitura
+    query = text("SELECT * FROM vw_residentes_sem_supervisor ORDER BY nome_residente, nome_unidade")
+    
+    alertas = db.session.execute(query).fetchall()
+    
+    return render_template('alertas_supervisao.html', alertas=alertas)
+
 @app.route('/consultas-avancadas')
 def consultas_avancadas():
     return render_template(

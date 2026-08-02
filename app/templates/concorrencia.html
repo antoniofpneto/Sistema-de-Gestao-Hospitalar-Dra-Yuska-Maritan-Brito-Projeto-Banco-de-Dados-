@@ -1,24 +1,78 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    /* Estilos para a animação dos bloquinhos */
+    .transition-all {
+        transition: all 0.5s ease-in-out;
+    }
+    .box-thread {
+        width: 120px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        position: relative;
+        z-index: 2;
+    }
+    .box-db {
+        width: 150px;
+        text-align: center;
+        border: 3px dashed #6c757d;
+        z-index: 1;
+    }
+</style>
+
 <div class="container mt-4">
     <h2>Simulação de Concorrência (Lock Pessimista)</h2>
     <p class="text-muted">
-        Este painel dispara duas requisições simultâneas tentando agendar o mesmo residente para o mesmo turno. 
-        O banco de dados utilizará o bloqueio de linha (<code>FOR UPDATE</code>) para enfileirar as requisições e evitar inconsistências.
+        Acompanhe visualmente ou pelos logs a tentativa de inserção simultânea no banco de dados.
     </p>
 
-    <div class="mb-3">
-        <button id="btn-simular" class="btn btn-primary" onclick="rodarSimulacao()">
+    <!-- Botões de Controle -->
+    <div class="mb-4 bg-light p-3 rounded border">
+        <button id="btn-simular" class="btn btn-success fw-bold me-2" onclick="rodarSimulacao()">
             ▶ Executar Simulação
         </button>
+        
+        <button class="btn btn-outline-dark" onclick="alternarAba('logs')">
+            💻 Exibir Logs
+        </button>
 
-        <span id="loading-spinner" class="spinner-border spinner-border-sm text-primary ms-2" style="display: none;" role="status"></span>
-        <span id="loading-text" class="ms-1 text-primary" style="display: none;">Processando transações... (aguarde 3 segundos)</span>
+        <span id="loading-spinner" class="spinner-border spinner-border-sm text-success ms-3" style="display: none;" role="status"></span>
+        <span id="loading-text" class="ms-1 text-success fw-bold" style="display: none;">Processando transações...</span>
     </div>
 
-    <!-- Terminal Visual -->
-    <div class="card bg-dark text-light mt-3">
+    <!-- TELA 1: Animação Visual -->
+    <div id="area-animacao" class="card shadow-sm mb-4">
+        <div class="card-header bg-white fw-bold">Visão do Banco de Dados</div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center py-5 px-3">
+                
+                <!-- Bloquinho da Thread 1 -->
+                <div id="bloco-t1" class="p-3 bg-primary text-white rounded transition-all box-thread">
+                    <strong>Thread 1</strong><br><small>Requisitando...</small>
+                </div>
+
+                <!-- Bloquinho do Banco (Tabela Escala) -->
+                <div id="bloco-db" class="p-4 bg-light text-dark rounded transition-all box-db">
+                    <i class="fas fa-database mb-2 fs-3"></i><br>
+                    <strong>Tabela: Escala</strong><br>
+                    <span id="status-db" class="badge bg-secondary">LIVRE</span>
+                </div>
+
+                <!-- Bloquinho da Thread 2 -->
+                <div id="bloco-t2" class="p-3 bg-info text-white rounded transition-all box-thread">
+                    <strong>Thread 2</strong><br><small>Requisitando...</small>
+                </div>
+
+            </div>
+            <div id="animacao-legenda" class="text-center mt-2 fw-bold text-muted">
+                Aguardando execução...
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA 2: Terminal de Logs (Oculto por padrão) -->
+    <div id="area-logs" class="card bg-dark text-light mb-4" style="display: none;">
         <div class="card-header border-secondary d-flex justify-content-between align-items-center">
             <span>💻 Logs do Servidor</span>
             <button class="btn btn-sm btn-outline-light" onclick="limparTerminal()">Limpar</button>
@@ -30,24 +84,99 @@
 </div>
 
 <script>
+    // --- 1. FUNÇÃO PARA ALTERNAR AS TELAS ---
+    function alternarAba(aba) {
+        const areaAnimacao = document.getElementById('area-animacao');
+        const areaLogs = document.getElementById('area-logs');
+
+        if (aba === 'animacao') {
+            areaAnimacao.style.display = 'block';
+            areaLogs.style.display = 'none';
+        } else if (aba === 'logs') {
+            areaAnimacao.style.display = 'none';
+            areaLogs.style.display = 'block';
+        }
+    }
+
     function limparTerminal() {
         document.getElementById('terminal-output').innerHTML = "Aguardando execução...";
     }
 
+    // --- 2. FUNÇÃO QUE EXECUTA A ANIMAÇÃO VISUAL ---
+    function executarAnimacao() {
+        const t1 = document.getElementById('bloco-t1');
+        const t2 = document.getElementById('bloco-t2');
+        const db = document.getElementById('bloco-db');
+        const dbStatus = document.getElementById('status-db');
+        const legenda = document.getElementById('animacao-legenda');
+
+        // Resetar posições e cores
+        t1.style.transform = "translateX(0)";
+        t2.style.transform = "translateX(0)";
+        t1.className = "p-3 bg-primary text-white rounded transition-all box-thread";
+        t2.className = "p-3 bg-info text-white rounded transition-all box-thread";
+        db.style.borderColor = "#6c757d";
+        dbStatus.className = "badge bg-secondary";
+        dbStatus.innerText = "LIVRE";
+
+        // Passo 1: Threads se movem em direção ao banco
+        setTimeout(() => {
+            legenda.innerText = "Ambas as threads tentam acessar a mesma vaga na escala...";
+            t1.style.transform = "translateX(150px)";
+            t2.style.transform = "translateX(-150px)";
+        }, 500);
+
+        // Passo 2: Thread 1 chega primeiro e pega o Lock
+        setTimeout(() => {
+            legenda.innerText = "Thread 1 adquire o Lock Pessimista. O Banco bloqueia a linha!";
+            t1.classList.replace('bg-primary', 'bg-warning');
+            db.style.borderColor = "#ffc107"; // Amarelo
+            dbStatus.className = "badge bg-warning text-dark";
+            dbStatus.innerText = "LOCKED (Em uso)";
+        }, 1200);
+
+        // Passo 3: Thread 2 bate na porta e é bloqueada
+        setTimeout(() => {
+            legenda.innerText = "Thread 2 é colocada em espera (conflito detectado).";
+            t2.classList.replace('bg-info', 'bg-danger');
+            t2.innerHTML = "<strong>Thread 2</strong><br><small>Bloqueada 🛑</small>";
+        }, 1800);
+
+        // Passo 4: Fim da transação (3 a 4 segundos depois)
+        setTimeout(() => {
+            legenda.innerText = "Thread 1 salva com sucesso. Thread 2 sofre Rollback.";
+            t1.classList.replace('bg-warning', 'bg-success');
+            t1.innerHTML = "<strong>Thread 1</strong><br><small>Salvo ✅</small>";
+            
+            db.style.borderColor = "#198754"; // Verde
+            dbStatus.className = "badge bg-success";
+            dbStatus.innerText = "ATUALIZADO";
+
+            t2.style.transform = "translateX(0)"; // T2 volta pra trás
+        }, 4200); // 4200ms para bater com os 3 segundos do time.sleep() do backend
+    }
+
+    // --- 3. FUNÇÃO PRINCIPAL (CHAMA API E ANIMAÇÃO) ---
     async function rodarSimulacao() {
         const btn = document.getElementById('btn-simular');
         const spinner = document.getElementById('loading-spinner');
         const loadingText = document.getElementById('loading-text');
         const terminal = document.getElementById('terminal-output');
 
-        // Alterar o estado da interface para carregamento
+        // Bloqueia botão e exibe loading
         btn.disabled = true;
         spinner.style.display = 'inline-block';
         loadingText.style.display = 'inline';
-        terminal.innerHTML = "Disparando threads concorentes...\n";
+        terminal.innerHTML = "Disparando threads concorrentes...\n";
+
+        // Força a tela de animação a aparecer quando clica no Play
+        alternarAba('animacao');
+        
+        // Dispara a coreografia dos bloquinhos
+        executarAnimacao();
 
         try {
-            // Fazer a chamada para a nossa API no Flask
+            // Dispara a requisição real pro Backend
             const response = await fetch('/api/simular-concorrencia', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
@@ -55,7 +184,7 @@
 
             const data = await response.json();
 
-            // Renderizar os logs retornados com cores
+            // Escreve os logs reais que voltaram do banco
             terminal.innerHTML = ""; 
             data.logs.forEach(log => {
                 let colorClass = 'text-light';
@@ -69,7 +198,7 @@
         } catch (error) {
             terminal.innerHTML += `<span class="text-danger">Erro de rede ao conectar com o servidor: ${error}</span>\n`;
         } finally {
-            // Restaurar o botão
+            // Libera o botão após o término (independente do tempo da animação)
             btn.disabled = false;
             spinner.style.display = 'none';
             loadingText.style.display = 'none';

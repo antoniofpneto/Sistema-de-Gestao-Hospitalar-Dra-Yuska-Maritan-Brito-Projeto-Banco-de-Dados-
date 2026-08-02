@@ -63,11 +63,16 @@ if __name__ == "__main__":
     DIA = 'Quinta' 
     TURNO = 'Noite'
 
+    with app.app_context():
+        # Deleta a escala se ela já existir para a corrida ser justa
+        db.session.query(Escala).filter_by(id_residente=6, dia_semana='Quinta', turno='Noite').delete()
+        db.session.commit()
+
     t1 = threading.Thread(target=simular_agendamento, args=("Thread-1", ID_RES, ID_PRE, ID_UNI, DIA, TURNO))
     t2 = threading.Thread(target=simular_agendamento, args=("Thread-2", ID_RES, ID_PRE, ID_UNI, DIA, TURNO))
 
     t1.start()
-    time.sleep(0.5)
+    # time.sleep(0.5) # Retirando a espera
     t2.start()
 
     t1.join()

@@ -89,129 +89,141 @@
 </div>
 
 <script>
-    // Função para limpar o terminal
-    function limparTerminal() {
-        document.getElementById('terminal-output').innerHTML = "Aguardando execução...\n";
-    }
-
     // Função auxiliar para escrever no terminal com cores
     function escreverLog(mensagem, corClass = 'text-light') {
         const terminal = document.getElementById('terminal-output');
         terminal.innerHTML += `<span class="${corClass}">${mensagem}</span>\n`;
-        // Faz o terminal "rolar" para baixo automaticamente
-        terminal.scrollTop = terminal.scrollHeight;
+        terminal.scrollTop = terminal.scrollHeight; // Rola para baixo
     }
 
-    // Função que roda a animação e escreve os logs sincronizados
-    function executarCoreografiaSincronizada() {
-        const t1 = document.getElementById('bloco-t1');
-        const t2 = document.getElementById('bloco-t2');
+    function limparTerminal() {
+        document.getElementById('terminal-output').innerHTML = "Aguardando execução...\n";
+    }
+
+    // Função que anima os blocos baseada no VENCEDOR real do backend
+    function executarCoreografiaDataDriven(vencedor, perdedor, logsReais) {
+        const blocoVencedor = document.getElementById(`bloco-${vencedor.toLowerCase().replace('thread-', 't')}`);
+        const blocoPerdedor = document.getElementById(`bloco-${perdedor.toLowerCase().replace('thread-', 't')}`);
         const db = document.getElementById('bloco-db');
         const dbStatus = document.getElementById('status-db');
         const legenda = document.getElementById('animacao-legenda');
 
-        // Resetar visual
-        t1.style.transform = "translateX(0)";
-        t2.style.transform = "translateX(0)";
-        t1.className = "p-3 bg-primary text-white rounded transition-all box-thread";
-        t2.className = "p-3 bg-info text-white rounded transition-all box-thread";
-        t1.innerHTML = "<strong>Thread 1</strong><br><small>Requisitando...</small>";
-        t2.innerHTML = "<strong>Thread 2</strong><br><small>Requisitando...</small>";
+        // 1. Resetar visual (tudo volta para a posição inicial)
+        document.getElementById('bloco-t1').style.transform = "translateX(0)";
+        document.getElementById('bloco-t2').style.transform = "translateX(0)";
+        document.getElementById('bloco-t1').className = "p-3 bg-primary text-white rounded transition-all box-thread";
+        document.getElementById('bloco-t2').className = "p-3 bg-info text-white rounded transition-all box-thread";
+        document.getElementById('bloco-t1').innerHTML = "<strong>Thread 1</strong><br><small>Aguardando...</small>";
+        document.getElementById('bloco-t2').innerHTML = "<strong>Thread 2</strong><br><small>Aguardando...</small>";
         db.style.borderColor = "#6c757d";
         dbStatus.className = "badge bg-secondary";
         dbStatus.innerText = "LIVRE";
         
-        // Limpar terminal antes de começar
         document.getElementById('terminal-output').innerHTML = "";
+        escreverLog("--- REPRODUZINDO RESULTADO OFICIAL DO BANCO ---", "text-primary fw-bold");
 
-        // TEMPO 0: Inicialização
-        escreverLog("[Thread-1] Iniciando transação...");
-        escreverLog("[Thread-2] Iniciando transação...");
-        escreverLog("[Thread-1] Solicitando lock para o Residente 6...");
-        escreverLog("[Thread-2] Solicitando lock para o Residente 6...");
-
-        // TEMPO 500ms: Threads começam a se mover
+        // 2. Passo 1: Ambas tentam acessar (Simulação visual da disputa)
         setTimeout(() => {
-            legenda.innerText = "Ambas as threads tentam acessar a mesma vaga na escala simultaneamente...";
-            t1.style.transform = "translateX(150px)"; // Vai pra direita
-            t2.style.transform = "translateX(-150px)"; // Vai pra esquerda
+            legenda.innerText = `O PostgreSQL iniciou a corrida. Ambas as threads foram disparadas...`;
+            document.getElementById('bloco-t1').style.transform = "translateX(150px)";
+            document.getElementById('bloco-t2').style.transform = "translateX(-150px)";
         }, 500);
 
-        // TEMPO 1200ms: Thread 1 chega primeiro e pega o Lock
+        // 3. Passo 2: O vencedor real chega e pega o Lock
         setTimeout(() => {
-            legenda.innerText = "Thread 1 adquire o Lock Pessimista. O Banco bloqueia a linha exclusiva para ela!";
-            
-            // Visual
-            t1.classList.replace('bg-primary', 'bg-warning');
-            db.style.borderColor = "#ffc107"; // Fica amarelo
+            legenda.innerText = `O escalonador favoreceu a ${vencedor}. Ela adquiriu o Lock Pessimista!`;
+            blocoVencedor.classList.replace('bg-primary', 'bg-warning');
+            blocoVencedor.classList.replace('bg-info', 'bg-warning');
+            db.style.borderColor = "#ffc107";
             dbStatus.className = "badge bg-warning text-dark";
             dbStatus.innerText = "LOCKED (Em uso)";
-
-            // Log sincronizado
-            escreverLog("[Thread-1] 🔒 Lock adquirido! Processando regra de negócio (simulação de 3s)...", "text-warning");
-        }, 1200);
-
-        // TEMPO 1800ms: Thread 2 bate no bloqueio
-        setTimeout(() => {
-            legenda.innerText = "Thread 2 atinge a tabela, mas encontra o Lock. Fica em espera forçada pelo banco.";
             
-            // Visual
-            t2.classList.replace('bg-info', 'bg-danger');
-            t2.innerHTML = "<strong>Thread 2</strong><br><small>Bloqueada 🛑</small>";
+            // Imprime todos os logs iniciais e do vencedor
+            logsReais.forEach(log => {
+                if (log.includes("Iniciando") || log.includes("Solicitando") || log.includes(`${vencedor}] 🔒`)) {
+                    let cor = 'text-light';
+                    if (log.includes('🔒')) cor = 'text-warning';
+                    escreverLog(log, cor);
+                }
+            });
+        }, 1500);
 
-            // Log sincronizado
-            escreverLog("[Thread-2] ⏳ Banco bloqueou a requisição. Aguardando liberação do recurso...", "text-danger");
-        }, 1800);
-
-        // TEMPO 4200ms: Fim da transação (3 segundos depois)
+        // 4. Passo 3: O perdedor bate no Lock
         setTimeout(() => {
-            legenda.innerText = "Thread 1 finaliza com sucesso. O banco libera a fila, Thread 2 percebe a vaga preenchida e cancela.";
-            
-            // Visual
-            t1.classList.replace('bg-warning', 'bg-success');
-            t1.innerHTML = "<strong>Thread 1</strong><br><small>Salvo ✅</small>";
-            db.style.borderColor = "#198754"; // Fica verde
+            legenda.innerText = `A ${perdedor} chegou milissegundos depois e foi bloqueada pelo banco.`;
+            blocoPerdedor.classList.replace('bg-primary', 'bg-danger');
+            blocoPerdedor.classList.replace('bg-info', 'bg-danger');
+            blocoPerdedor.innerHTML = `<strong>${perdedor}</strong><br><small>Bloqueada 🛑</small>`;
+        }, 2200);
+
+        // 5. Passo 4: Resolução e impressão do restante dos logs
+        setTimeout(() => {
+            legenda.innerText = `Transação concluída. ${vencedor} salvou a vaga, ${perdedor} sofreu Rollback.`;
+            blocoVencedor.classList.replace('bg-warning', 'bg-success');
+            blocoVencedor.innerHTML = `<strong>${vencedor}</strong><br><small>Salvo ✅</small>`;
+            db.style.borderColor = "#198754";
             dbStatus.className = "badge bg-success";
             dbStatus.innerText = "ATUALIZADO";
-            t2.style.transform = "translateX(0)"; // Thread 2 recua
+            blocoPerdedor.style.transform = "translateX(0)";
 
-            // Log sincronizado
-            escreverLog("[Thread-1] ✅ SUCESSO: Escala cadastrada e Lock liberado.", "text-success");
-            escreverLog("[Thread-2] 🛑 CONFLITO DETECTADO: A vaga foi preenchida enquanto esperava. Abortando transação.", "text-danger");
-            escreverLog("\n--- Simulação Finalizada ---", "text-muted");
-        }, 4200);
+            // Imprime os logs finais de sucesso e conflito
+            logsReais.forEach(log => {
+                if (log.includes("SUCESSO") || log.includes("CONFLITO")) {
+                    let cor = log.includes('SUCESSO') ? 'text-success' : 'text-danger';
+                    escreverLog(log, cor);
+                }
+            });
+            escreverLog("\n--- Fim da Execução ---");
+        }, 3500);
     }
 
-    // Função Principal que controla os botões e chama o Backend
     async function rodarSimulacao() {
         const btn = document.getElementById('btn-simular');
         const spinner = document.getElementById('loading-spinner');
         const loadingText = document.getElementById('loading-text');
 
-        // Bloqueia botão para não clicar duas vezes seguidas
         btn.disabled = true;
         spinner.style.display = 'inline-block';
         loadingText.style.display = 'inline';
-
-        // Dispara a animação visual e os logs (no frontend)
-        executarCoreografiaSincronizada();
+        
+        // Limpa a tela para indicar que a requisição está acontecendo
+        document.getElementById('terminal-output').innerHTML = "Enviando requisição simultânea para o servidor Python...\nAguardando a resolução do banco de dados (Lock)...";
+        document.getElementById('animacao-legenda').innerText = "Aguardando resposta do banco de dados...";
 
         try {
-            // Dispara a requisição REAL para o backend Python executar a query no PostgreSQL
-            await fetch('/api/simular-concorrencia', {
+            // 1. FAZ A REQUISIÇÃO REAL PRIMEIRO
+            const response = await fetch('/api/simular-concorrencia', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });
 
+            const data = await response.json();
+            const logs = data.logs;
+
+            // 2. ANALISA OS DADOS PARA DESCOBRIR QUEM GANHOU A CORRIDA (Não-Determinismo)
+            let vencedor = "Thread-1"; // Assume T1 como padrão
+            let perdedor = "Thread-2";
+
+            logs.forEach(log => {
+                // Se a Thread 2 conseguiu o Lock no backend, ela é a vencedora visual
+                if (log.includes("[Thread-2] 🔒 Lock adquirido")) {
+                    vencedor = "Thread-2";
+                    perdedor = "Thread-1";
+                }
+            });
+
+            // 3. EXECUTA A ANIMAÇÃO COM BASE NO FATO REAL
+            executarCoreografiaDataDriven(vencedor, perdedor, logs);
+
         } catch (error) {
-            escreverLog(`\n[ERRO] Falha de comunicação com o servidor backend: ${error}`, "text-danger");
+            escreverLog(`\n[ERRO] Falha de comunicação: ${error}`, "text-danger");
         } finally {
-            // Libera o botão 4.5 segundos depois, quando toda a animação tiver terminado
+            // Libera o botão após o tempo da animação (3.5s) terminar
             setTimeout(() => {
                 btn.disabled = false;
                 spinner.style.display = 'none';
                 loadingText.style.display = 'none';
-            }, 4500);
+            }, 4000);
         }
     }
 </script>

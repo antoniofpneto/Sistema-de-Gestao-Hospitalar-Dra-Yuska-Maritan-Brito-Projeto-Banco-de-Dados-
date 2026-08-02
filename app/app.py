@@ -652,7 +652,7 @@ def api_simular_concorrencia():
     t2 = threading.Thread(target=simular_agendamento, args=("Thread-2", ID_RES, ID_PRE, ID_UNI, DIA, TURNO))
 
     t1.start()
-    time.sleep(0.5)
+    # time.sleep(0.5) # Retirando a espera entre as threads
     t2.start()
 
     t1.join()

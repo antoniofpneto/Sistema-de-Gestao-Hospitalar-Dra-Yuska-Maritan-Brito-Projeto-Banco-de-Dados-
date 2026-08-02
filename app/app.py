@@ -540,6 +540,11 @@ def excluir_atendimento(id_atendimento):
         
     return redirect(url_for('listar_atendimentos'))
 
+@app.route('/procedimentos')
+def listar_procedimentos():
+    procedimentos = Procedimento.query.order_by(Procedimento.nome).all()
+    return render_template('procedimentos.html', procedimentos=procedimentos)
+
 @app.route('/consultas-avancadas')
 def consultas_avancadas():
     return render_template(

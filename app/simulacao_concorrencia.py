@@ -5,9 +5,17 @@ import threading
 import time
 from app import app
 from models import db, Escala, Residente
+import random
 
 def simular_agendamento(nome_thread, id_residente, id_preceptor, id_unidade, dia, turno):
     with app.app_context():
+
+        # Ambas a threads chegam aqui
+        largada.wait()
+
+        # Espera um tempo aleatorio entre 1 e 15 milisegundo para a thread 1 conseguir acordar
+        time.sleep(random.uniform(0.001, 0.015))
+
         print(f"[{nome_thread}] Iniciando transação...")
         try:
             print(f"[{nome_thread}] Solicitando lock para o Residente {id_residente}...")
@@ -63,11 +71,18 @@ if __name__ == "__main__":
     DIA = 'Quinta' 
     TURNO = 'Noite'
 
+    largada = threading.Barrier(2)
+
+    with app.app_context():
+        # Deleta a escala se ela já existir para a corrida ser justa
+        db.session.query(Escala).filter_by(id_residente=6, dia_semana='Quinta', turno='Noite').delete()
+        db.session.commit()
+
     t1 = threading.Thread(target=simular_agendamento, args=("Thread-1", ID_RES, ID_PRE, ID_UNI, DIA, TURNO))
     t2 = threading.Thread(target=simular_agendamento, args=("Thread-2", ID_RES, ID_PRE, ID_UNI, DIA, TURNO))
 
     t1.start()
-    time.sleep(0.5)
+    # time.sleep(0.5) # Retirando a espera
     t2.start()
 
     t1.join()

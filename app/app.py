@@ -1,11 +1,13 @@
 # app.py
 import os
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade, Procedimento, Profissional, Escala, EspecialidadeProfissional, AuditoriaAtendimento
 import consultas_avancadas as ca
 from dotenv import load_dotenv, find_dotenv
 from sqlalchemy import func, text, or_
 from datetime import date, datetime
+import threading
+import time
 
 # carrregar as variáveis de ambiente para a memória
 load_dotenv(find_dotenv())
@@ -580,6 +582,84 @@ def consultas_avancadas():
         ultimos_atendimentos=ca.ultimo_atendimento_por_paciente(),
         percentuais_alto_risco=ca.percentual_alto_risco_por_residente(),
     )
+
+# Rota de mostras a simulação
+@app.route('/concorrencia')
+def concorrencia_view():
+    # Rota que renderiza a página visual
+    return render_template('concorrencia.html')
+
+@app.route('/api/simular-concorrencia', methods=['POST'])
+def api_simular_concorrencia():
+    import threading
+    import time
+    
+    logs = []
+    lock_logs = threading.Lock() # Protege a lista de logs para as threads escreverem juntas
+
+    # Função auxiliar para guardar os prints na nossa lista
+    def registrar_log(mensagem):
+        with lock_logs:
+            logs.append(mensagem)
+
+    # A mesma lógica do seu script, mas enviando para o registrar_log()
+    def simular_agendamento(nome_thread, id_residente, id_preceptor, id_unidade, dia, turno):
+        with app.app_context():
+            registrar_log(f"[{nome_thread}] Iniciando transação...")
+            try:
+                registrar_log(f"[{nome_thread}] Solicitando lock para o Residente {id_residente}...")
+                
+                residente = db.session.query(Residente).filter_by(id_profissional=id_residente).with_for_update().first()
+                
+                if not residente:
+                    registrar_log(f"[{nome_thread}] ❌ ERRO: Residente não encontrado.")
+                    db.session.rollback()
+                    return
+
+                registrar_log(f"[{nome_thread}] 🔒 Lock adquirido! Processando (simulação de 3s)...")
+                time.sleep(3)
+
+                escala_existente = db.session.query(Escala).filter_by(
+                    id_residente=id_residente, dia_semana=dia, turno=turno
+                ).first()
+
+                if escala_existente:
+                    registrar_log(f"[{nome_thread}] 🛑 CONFLITO DETECTADO: Vaga já preenchida. Abortando transação.")
+                    db.session.rollback()
+                    return
+
+                nova_escala = Escala(
+                    id_unidade=id_unidade, id_residente=id_residente,
+                    id_preceptor=id_preceptor, dia_semana=dia, turno=turno
+                )
+                db.session.add(nova_escala)
+                db.session.commit()
+                registrar_log(f"[{nome_thread}] ✅ SUCESSO: Escala cadastrada e Lock liberado.")
+
+            except Exception as e:
+                db.session.rollback()
+                registrar_log(f"[{nome_thread}] ❌ ERRO REAL: {repr(e)}")
+
+    # Apaga a escala, se existir, para podermos clicar no botão várias vezes sem travar na primeira
+    with app.app_context():
+        db.session.query(Escala).filter_by(id_residente=6, dia_semana='Quinta', turno='Noite').delete()
+        db.session.commit()
+
+    # Variáveis de teste
+    ID_RES, ID_PRE, ID_UNI, DIA, TURNO = 6, 11, 1, 'Quinta', 'Noite'
+
+    t1 = threading.Thread(target=simular_agendamento, args=("Thread-1", ID_RES, ID_PRE, ID_UNI, DIA, TURNO))
+    t2 = threading.Thread(target=simular_agendamento, args=("Thread-2", ID_RES, ID_PRE, ID_UNI, DIA, TURNO))
+
+    t1.start()
+    time.sleep(0.5)
+    t2.start()
+
+    t1.join()
+    t2.join()
+
+    # Retorna a lista de mensagens para o JavaScript desenhar na tela
+    return jsonify({"status": "sucesso", "logs": logs})
 
 if __name__ == '__main__':
     with app.app_context():

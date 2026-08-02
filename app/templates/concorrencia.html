@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Simulação de Concorrência (Lock Pessimista)</h2>
+    <p class="text-muted">
+        Este painel dispara duas requisições simultâneas tentando agendar o mesmo residente para o mesmo turno. 
+        O banco de dados utilizará o bloqueio de linha (<code>FOR UPDATE</code>) para enfileirar as requisições e evitar inconsistências.
+    </p>
+
+    <div class="mb-3">
+        <button id="btn-simular" class="btn btn-primary" onclick="rodarSimulacao()">
+            ▶ Executar Simulação
+        </button>
+
+        <span id="loading-spinner" class="spinner-border spinner-border-sm text-primary ms-2" style="display: none;" role="status"></span>
+        <span id="loading-text" class="ms-1 text-primary" style="display: none;">Processando transações... (aguarde 3 segundos)</span>
+    </div>
+
+    <!-- Terminal Visual -->
+    <div class="card bg-dark text-light mt-3">
+        <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+            <span>💻 Logs do Servidor</span>
+            <button class="btn btn-sm btn-outline-light" onclick="limparTerminal()">Limpar</button>
+        </div>
+        <div class="card-body" style="min-height: 250px; font-family: monospace;">
+            <pre id="terminal-output" class="text-light" style="margin: 0; white-space: pre-wrap;">Aguardando execução...</pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    function limparTerminal() {
+        document.getElementById('terminal-output').innerHTML = "Aguardando execução...";
+    }
+
+    async function rodarSimulacao() {
+        const btn = document.getElementById('btn-simular');
+        const spinner = document.getElementById('loading-spinner');
+        const loadingText = document.getElementById('loading-text');
+        const terminal = document.getElementById('terminal-output');
+
+        // Alterar o estado da interface para carregamento
+        btn.disabled = true;
+        spinner.style.display = 'inline-block';
+        loadingText.style.display = 'inline';
+        terminal.innerHTML = "Disparando threads concorentes...\n";
+
+        try {
+            // Fazer a chamada para a nossa API no Flask
+            const response = await fetch('/api/simular-concorrencia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+
+            // Renderizar os logs retornados com cores
+            terminal.innerHTML = ""; 
+            data.logs.forEach(log => {
+                let colorClass = 'text-light';
+                if (log.includes('SUCESSO') || log.includes('✅')) colorClass = 'text-success';
+                if (log.includes('CONFLITO') || log.includes('ERRO') || log.includes('🛑') || log.includes('❌')) colorClass = 'text-danger';
+                if (log.includes('Lock adquirido')) colorClass = 'text-warning';
+
+                terminal.innerHTML += `<span class="${colorClass}">${log}</span>\n`;
+            });
+
+        } catch (error) {
+            terminal.innerHTML += `<span class="text-danger">Erro de rede ao conectar com o servidor: ${error}</span>\n`;
+        } finally {
+            // Restaurar o botão
+            btn.disabled = false;
+            spinner.style.display = 'none';
+            loadingText.style.display = 'none';
+            terminal.innerHTML += "\n--- Simulação Finalizada ---";
+        }
+    }
+</script>
+{% endblock %}

@@ -1,58 +1,88 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-bar-chart-line-fill text-success"></i> Estatísticas Mensais</h2>
-    <span class="badge bg-success text-white">Dashboard Analítico (CTE & JSONB)</span>
+<!-- ============================================================ -->
+<!-- CABEÇALHO -->
+<!-- ============================================================ -->
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 pb-3 border-bottom">
+    <div>
+        <span class="text-uppercase small fw-semibold text-success d-block mb-1" style="letter-spacing:.08em;">
+            Analytics
+        </span>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-bar-chart-line-fill text-success me-2"></i>Estatísticas Mensais
+        </h2>
+        <p class="text-muted mb-0">Agregação temporal e espacial processada nativamente pelo PostgreSQL.</p>
+    </div>
+    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-medium" title="Uso de CTE e JSONB_AGG">
+        <i class="bi bi-braces me-1"></i> Dashboard Analítico (CTE & JSONB)
+    </span>
 </div>
 
-<div class="card shadow-sm border-success">
-    <div class="card-header bg-success text-white fw-bold">
-        <i class="bi bi-calendar3"></i> Resumo de Atendimentos por Unidade
+<!-- ============================================================ -->
+<!-- CONTEÚDO PRINCIPAL (CARD & TABELA) -->
+<!-- ============================================================ -->
+<div class="card border-0 shadow-sm rounded-4 mb-5">
+    <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex align-items-center gap-3">
+        <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+            <i class="bi bi-calendar3 fs-5"></i>
+        </div>
+        <h5 class="fw-bold text-dark mb-0">Resumo de Atendimentos por Unidade</h5>
     </div>
+    
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 custom-table">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-3">Competência (Mês/Ano)</th>
-                        <th>Unidade</th>
-                        <th class="text-center">Total de Atendimentos</th>
-                        <th class="text-center">Duração Média</th>
-                        <th>Top 3 Procedimentos (Agregação JSON)</th>
+                        <th class="ps-4 text-uppercase small text-muted fw-semibold">Competência</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Unidade</th>
+                        <th class="text-center text-uppercase small text-muted fw-semibold">Total Atend.</th>
+                        <th class="text-center text-uppercase small text-muted fw-semibold">Duração Média</th>
+                        <th class="text-uppercase small text-muted fw-semibold pe-4">Top 3 Procedimentos (JSON)</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for stat in estatisticas %}
                     <tr>
-                        <td class="ps-3 fw-bold text-secondary">
-                            <i class="bi bi-calendar-event me-1"></i> {{ stat.mes.strftime('%m/%Y') }}
-                        </td>
-                        <td><span class="badge bg-primary">{{ stat.nome_unidade }}</span></td>
-                        <td class="text-center fs-5 fw-medium">{{ stat.total_atendimentos }}</td>
-                        <td class="text-center">
-                            <span class="text-muted">{{ stat.media_duracao_minutos }} min</span>
+                        <td class="ps-4 fw-bold text-secondary">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-calendar-event text-muted"></i>
+                                <span>{{ stat.mes.strftime('%m/%Y') }}</span>
+                            </div>
                         </td>
                         <td>
+                            <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium px-3 py-1">{{ stat.nome_unidade }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="fs-5 fw-bold text-dark">{{ stat.total_atendimentos }}</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-inline-flex align-items-center bg-light border rounded-pill px-3 py-1">
+                                <span class="text-dark fw-semibold">{{ stat.media_duracao_minutos }} <small class="text-muted fw-normal">min</small></span>
+                            </div>
+                        </td>
+                        <td class="pe-4 py-3">
                             <!-- Iteração nativa sobre a lista de dicionários gerada pelo JSONB_AGG -->
                             {% if stat.procedimentos_mais_comuns %}
-                                <ul class="list-unstyled mb-0 small">
+                                <div class="d-flex flex-column gap-2">
                                     {% for proc in stat.procedimentos_mais_comuns %}
-                                    <li class="mb-1">
-                                        <i class="bi bi-arrow-right-short text-success fw-bold"></i> 
-                                        {{ proc.procedimento }} 
-                                        <span class="badge bg-light text-dark border ms-1">{{ proc.qtd_vezes }}x</span>
-                                    </li>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-check2-circle text-success"></i>
+                                        <span class="fw-medium text-dark small">{{ proc.procedimento }}</span>
+                                        <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill px-2 py-1" style="font-size: 0.7rem;">{{ proc.qtd_vezes }}x</span>
+                                    </div>
                                     {% endfor %}
-                                </ul>
+                                </div>
                             {% else %}
-                                <span class="text-muted small fst-italic">Nenhum procedimento registrado.</span>
+                                <span class="text-muted small fst-italic"><i class="bi bi-dash me-1"></i>Nenhum procedimento</span>
                             {% endif %}
                         </td>
                     </tr>
                     {% else %}
                     <tr>
                         <td colspan="5" class="text-center text-muted py-5">
+                            <i class="bi bi-bar-chart-x fs-3 d-block mb-2 text-body-tertiary"></i>
                             Nenhum dado estatístico disponível no momento.
                         </td>
                     </tr>
@@ -62,4 +92,11 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Suaviza a transição do hover na tabela */
+    .custom-table tbody tr {
+        transition: background-color 0.15s ease-in-out;
+    }
+</style>
 {% endblock %}

@@ -20,39 +20,9 @@ Antes de tudo, é necessário ter instalado em sua máquina:
 - **Python 3.x** — [Download](https://www.python.org/downloads/)
     - Necessário para rodar o backend e a interface web da Etapa 2.
 
----
 
-## 💾 Etapa 1: Criando e Povoando o Banco de Dados
 
-### 1. Criando o banco vazio
-Com o PostgreSQL instalado e rodando, crie o banco para o projeto:
-1. Acesse o cliente `psql` no terminal: `psql -U postgres`
-2. Crie o banco de dados: `CREATE DATABASE gestao_hospitalar;` *(Nota: ajuste o nome conforme sua preferência)*
-3. Saia do psql: `\q`
-
-### 2. Executando os Scripts SQL
-Os scripts devem ser executados na ordem correta (DDL primeiro, depois DML), pois há dependências relacionais estruturais.
-
-**Via linha de comando (psql):**
-1. Crie as tabelas (estrutura):
-    `psql -U postgres -d gestao_hospitalar -f sql/ddl/01_create_tables.sql`
-2. Insira os dados de teste:
-    `psql -U postgres -d gestao_hospitalar -f sql/dml/01_dados_teste.sql`
-3. (Opcional) Execute uma consulta analítica:
-    `psql -U postgres -d gestao_hospitalar -f sql/analytics/01_ranking_residentes_por_atendimentos.sql`
-
-**Via DBeaver (Interface visual):**
-1. Crie uma nova conexão apontando para o banco `gestao_hospitalar`.
-2. Abra os arquivos `.sql` desejados em File → Open File.
-3. Conecte o arquivo ao banco e execute tudo com `Alt+X`.
-
-Para verificar se tudo deu certo via terminal, acesse o banco (`psql -U postgres -d gestao_hospitalar`), digite `\dt` para listar as tabelas ou faça um `SELECT * FROM pessoa;`.
-
----
-
-## 💻 Etapa 2: Executando a Aplicação Web (Flask + SQLAlchemy)
-
-A Etapa 2 traz uma interface web interativa para o sistema, substituindo os scripts manuais por um mapeamento objeto-relacional (ORM).
+## Etapa 2 - Executando a Aplicação Web (Flask + SQLAlchemy)
 
 ### 1. Configurando o Ambiente Virtual
 Para evitar conflitos com outras bibliotecas do seu computador, criamos uma "sala limpa" (ambiente virtual). No terminal, dentro da pasta do projeto, execute:
@@ -108,5 +78,3 @@ DB_NAME=gestao_hospitalar
 Com tudo configurado, basta ligar o servidor web:
 1. Navegue até a pasta da aplicação: `cd app`
 2. Execute o sistema: `python app.py`
-
-Pronto! A recepcão do hospital já está operante. Abra o seu navegador e acesse: **`http://localhost:5000`**

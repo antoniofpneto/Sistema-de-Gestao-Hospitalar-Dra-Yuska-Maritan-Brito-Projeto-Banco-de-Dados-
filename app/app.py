@@ -583,5 +583,5 @@ def consultas_avancadas():
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all() # Cria as tabelas caso não existam (útil para testes, mas no seu caso o script SQL já fez isso)
+        db.create_all() 
     app.run(debug=True)

@@ -545,6 +545,16 @@ def listar_procedimentos():
     procedimentos = Procedimento.query.order_by(Procedimento.nome).all()
     return render_template('procedimentos.html', procedimentos=procedimentos)
 
+@app.route('/pacientes/internados')
+def pacientes_internados():
+    # Consulta direta à View abstraindo a complexidade dos relacionamentos
+    query = text("SELECT * FROM vw_pacientes_internados ORDER BY data_hora_entrada DESC")
+    
+    # Executa a query e busca todos os resultados
+    internados = db.session.execute(query).fetchall()
+    
+    return render_template('pacientes_internados.html', internados=internados)
+
 @app.route('/consultas-avancadas')
 def consultas_avancadas():
     return render_template(

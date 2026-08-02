@@ -34,7 +34,7 @@
             <!-- Operação 1 -->
             <a href="/atendimentos" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="mb-1 text-primary">1. Inserir Atendimento (Validação de Chaves)</h6>
+                    <h6 class="mb-1 text-dark">1. Inserir Atendimento (Validação de Chaves)</h6>
                     <small>Tenta inserir um atendimento e valida a existência das entidades relacionadas via ORM.</small>
                 </div>
                 <button class="btn btn-outline-primary btn-sm rounded-pill">Ir para Atendimentos</button>
@@ -43,7 +43,7 @@
             <!-- Operação 2 e 4 (Prontuário do Paciente) -->
             <a href="/paciente/{{ id_pac }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="mb-1 text-success">2 e 4. Atualizar Paciente & Listar Histórico</h6>
+                    <h6 class="mb-1 text-dark">2 e 4. Atualizar Paciente & Listar Histórico</h6>
                     <small>Edição de Convênio (Update) e Linha do Tempo de Atendimentos (Query Relacional).</small>
                 </div>
                 <button class="btn btn-outline-success btn-sm rounded-pill">Abrir Prontuário</button>
@@ -66,6 +66,47 @@
                 </div>
                 <button class="btn btn-outline-info btn-sm rounded-pill">Ver Residentes</button>
             </a>
+        </div>
+    </div>
+</div>
+
+<!-- ROTEIRO DAS VIEWS -->
+<div class="card border-dark shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-play-circle"></i> VIEWS </h5>
+        <span class="badge bg-light text-dark">VIEWS</span>
+    </div>
+    <div class="card-body">
+        <p class="text-muted">Acesso às Views implementadas.</p>
+        
+        <div class="list-group">
+            <!-- Operação 1 -->
+            <a href="{{ url_for('pacientes_internados') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 text-dark">1. Pacientes Internados</h6>
+                    <small>Listagem dos pascientes internados</small>
+                </div>
+                <button class="btn btn-outline-primary btn-sm rounded-pill">Ir para Pacientes Internados</button>
+            </a>
+
+            <!-- Operação 2 e 4 (Prontuário do Paciente) -->
+            <a href="/paciente/{{ id_pac }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 text-dark">2 e 4. Atualizar Paciente & Listar Histórico</h6>
+                    <small>Edição de Convênio (Update) e Linha do Tempo de Atendimentos (Query Relacional).</small>
+                </div>
+                <button class="btn btn-outline-success btn-sm rounded-pill">Abrir Prontuário</button>
+            </a>
+
+            <!-- Operação 3 e 5 (Procedimentos) -->
+            <a href="{{ url_for('listar_atendimentos') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1 text-warning text-dark">3 e 5. Listar Procedimentos & Remover (Regra de Faturamento)</h6>
+                    <small>Lista procedimentos usando joins implícitos e testa o bloqueio de exclusão em procedimentos faturados.</small>
+                </div>
+                <button class="btn btn-outline-warning btn-sm rounded-pill">Ver Atendimentos</button>
+            </a>
+
         </div>
     </div>
 </div>

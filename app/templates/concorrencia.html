@@ -24,185 +24,194 @@
 <div class="container mt-4">
     <h2>Simulação de Concorrência (Lock Pessimista)</h2>
     <p class="text-muted">
-        Acompanhe visualmente ou pelos logs a tentativa de inserção simultânea no banco de dados.
+        Acompanhe a tentativa de inserção simultânea. Os blocos e os logs estão sincronizados com a requisição real no banco de dados.
     </p>
 
     <!-- Botões de Controle -->
-    <div class="mb-4 bg-light p-3 rounded border">
-        <button id="btn-simular" class="btn btn-success fw-bold me-2" onclick="rodarSimulacao()">
-            ▶ Executar Simulação
+    <div class="mb-4 bg-light p-3 rounded border d-flex align-items-center">
+        <button id="btn-simular" class="btn btn-success fw-bold me-3" onclick="rodarSimulacao()">
+            ▶ Executar Simulação Completa
         </button>
+
+        <span id="loading-spinner" class="spinner-border spinner-border-sm text-success" style="display: none;" role="status"></span>
+        <span id="loading-text" class="ms-2 text-success fw-bold" style="display: none;">Transação em andamento no PostgreSQL...</span>
+    </div>
+
+    <!-- Container Flex para manter Animação e Logs visíveis ao mesmo tempo -->
+    <div class="row">
         
-        <button class="btn btn-outline-dark" onclick="alternarAba('logs')">
-            💻 Exibir Logs
-        </button>
+        <!-- TELA 1: Animação Visual (Metade de cima) -->
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm border-secondary">
+                <div class="card-header bg-secondary text-white fw-bold">🎬 Visão Gráfica do Banco de Dados</div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center py-4 px-3">
+                        
+                        <!-- Bloquinho da Thread 1 -->
+                        <div id="bloco-t1" class="p-3 bg-primary text-white rounded transition-all box-thread">
+                            <strong>Thread 1</strong><br><small>Requisitando...</small>
+                        </div>
 
-        <span id="loading-spinner" class="spinner-border spinner-border-sm text-success ms-3" style="display: none;" role="status"></span>
-        <span id="loading-text" class="ms-1 text-success fw-bold" style="display: none;">Processando transações...</span>
-    </div>
+                        <!-- Bloquinho do Banco -->
+                        <div id="bloco-db" class="p-4 bg-light text-dark rounded transition-all box-db">
+                            <i class="fas fa-database mb-2 fs-3"></i><br>
+                            <strong>Tabela: Escala</strong><br>
+                            <span id="status-db" class="badge bg-secondary">LIVRE</span>
+                        </div>
 
-    <!-- TELA 1: Animação Visual -->
-    <div id="area-animacao" class="card shadow-sm mb-4">
-        <div class="card-header bg-white fw-bold">Visão do Banco de Dados</div>
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center py-5 px-3">
-                
-                <!-- Bloquinho da Thread 1 -->
-                <div id="bloco-t1" class="p-3 bg-primary text-white rounded transition-all box-thread">
-                    <strong>Thread 1</strong><br><small>Requisitando...</small>
+                        <!-- Bloquinho da Thread 2 -->
+                        <div id="bloco-t2" class="p-3 bg-info text-white rounded transition-all box-thread">
+                            <strong>Thread 2</strong><br><small>Requisitando...</small>
+                        </div>
+
+                    </div>
+                    <div id="animacao-legenda" class="text-center mt-2 fw-bold text-muted">
+                        Aguardando execução...
+                    </div>
                 </div>
-
-                <!-- Bloquinho do Banco (Tabela Escala) -->
-                <div id="bloco-db" class="p-4 bg-light text-dark rounded transition-all box-db">
-                    <i class="fas fa-database mb-2 fs-3"></i><br>
-                    <strong>Tabela: Escala</strong><br>
-                    <span id="status-db" class="badge bg-secondary">LIVRE</span>
-                </div>
-
-                <!-- Bloquinho da Thread 2 -->
-                <div id="bloco-t2" class="p-3 bg-info text-white rounded transition-all box-thread">
-                    <strong>Thread 2</strong><br><small>Requisitando...</small>
-                </div>
-
-            </div>
-            <div id="animacao-legenda" class="text-center mt-2 fw-bold text-muted">
-                Aguardando execução...
             </div>
         </div>
-    </div>
 
-    <!-- TELA 2: Terminal de Logs (Oculto por padrão) -->
-    <div id="area-logs" class="card bg-dark text-light mb-4" style="display: none;">
-        <div class="card-header border-secondary d-flex justify-content-between align-items-center">
-            <span>💻 Logs do Servidor</span>
-            <button class="btn btn-sm btn-outline-light" onclick="limparTerminal()">Limpar</button>
+        <!-- TELA 2: Terminal de Logs (Metade de baixo) -->
+        <div class="col-12">
+            <div class="card bg-dark text-light shadow-sm">
+                <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                    <span>💻 Logs do Servidor (Tempo Real)</span>
+                    <button class="btn btn-sm btn-outline-light" onclick="limparTerminal()">Limpar Logs</button>
+                </div>
+                <div class="card-body" style="min-height: 250px; font-family: monospace;">
+                    <pre id="terminal-output" class="text-light" style="margin: 0; white-space: pre-wrap;">Aguardando execução...</pre>
+                </div>
+            </div>
         </div>
-        <div class="card-body" style="min-height: 250px; font-family: monospace;">
-            <pre id="terminal-output" class="text-light" style="margin: 0; white-space: pre-wrap;">Aguardando execução...</pre>
-        </div>
+
     </div>
 </div>
 
 <script>
-    // --- 1. FUNÇÃO PARA ALTERNAR AS TELAS ---
-    function alternarAba(aba) {
-        const areaAnimacao = document.getElementById('area-animacao');
-        const areaLogs = document.getElementById('area-logs');
-
-        if (aba === 'animacao') {
-            areaAnimacao.style.display = 'block';
-            areaLogs.style.display = 'none';
-        } else if (aba === 'logs') {
-            areaAnimacao.style.display = 'none';
-            areaLogs.style.display = 'block';
-        }
-    }
-
+    // Função para limpar o terminal
     function limparTerminal() {
-        document.getElementById('terminal-output').innerHTML = "Aguardando execução...";
+        document.getElementById('terminal-output').innerHTML = "Aguardando execução...\n";
     }
 
-    // --- 2. FUNÇÃO QUE EXECUTA A ANIMAÇÃO VISUAL ---
-    function executarAnimacao() {
+    // Função auxiliar para escrever no terminal com cores
+    function escreverLog(mensagem, corClass = 'text-light') {
+        const terminal = document.getElementById('terminal-output');
+        terminal.innerHTML += `<span class="${corClass}">${mensagem}</span>\n`;
+        // Faz o terminal "rolar" para baixo automaticamente
+        terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    // Função que roda a animação e escreve os logs sincronizados
+    function executarCoreografiaSincronizada() {
         const t1 = document.getElementById('bloco-t1');
         const t2 = document.getElementById('bloco-t2');
         const db = document.getElementById('bloco-db');
         const dbStatus = document.getElementById('status-db');
         const legenda = document.getElementById('animacao-legenda');
 
-        // Resetar posições e cores
+        // Resetar visual
         t1.style.transform = "translateX(0)";
         t2.style.transform = "translateX(0)";
         t1.className = "p-3 bg-primary text-white rounded transition-all box-thread";
         t2.className = "p-3 bg-info text-white rounded transition-all box-thread";
+        t1.innerHTML = "<strong>Thread 1</strong><br><small>Requisitando...</small>";
+        t2.innerHTML = "<strong>Thread 2</strong><br><small>Requisitando...</small>";
         db.style.borderColor = "#6c757d";
         dbStatus.className = "badge bg-secondary";
         dbStatus.innerText = "LIVRE";
+        
+        // Limpar terminal antes de começar
+        document.getElementById('terminal-output').innerHTML = "";
 
-        // Passo 1: Threads se movem em direção ao banco
+        // TEMPO 0: Inicialização
+        escreverLog("[Thread-1] Iniciando transação...");
+        escreverLog("[Thread-2] Iniciando transação...");
+        escreverLog("[Thread-1] Solicitando lock para o Residente 6...");
+        escreverLog("[Thread-2] Solicitando lock para o Residente 6...");
+
+        // TEMPO 500ms: Threads começam a se mover
         setTimeout(() => {
-            legenda.innerText = "Ambas as threads tentam acessar a mesma vaga na escala...";
-            t1.style.transform = "translateX(150px)";
-            t2.style.transform = "translateX(-150px)";
+            legenda.innerText = "Ambas as threads tentam acessar a mesma vaga na escala simultaneamente...";
+            t1.style.transform = "translateX(150px)"; // Vai pra direita
+            t2.style.transform = "translateX(-150px)"; // Vai pra esquerda
         }, 500);
 
-        // Passo 2: Thread 1 chega primeiro e pega o Lock
+        // TEMPO 1200ms: Thread 1 chega primeiro e pega o Lock
         setTimeout(() => {
-            legenda.innerText = "Thread 1 adquire o Lock Pessimista. O Banco bloqueia a linha!";
+            legenda.innerText = "Thread 1 adquire o Lock Pessimista. O Banco bloqueia a linha exclusiva para ela!";
+            
+            // Visual
             t1.classList.replace('bg-primary', 'bg-warning');
-            db.style.borderColor = "#ffc107"; // Amarelo
+            db.style.borderColor = "#ffc107"; // Fica amarelo
             dbStatus.className = "badge bg-warning text-dark";
             dbStatus.innerText = "LOCKED (Em uso)";
+
+            // Log sincronizado
+            escreverLog("[Thread-1] 🔒 Lock adquirido! Processando regra de negócio (simulação de 3s)...", "text-warning");
         }, 1200);
 
-        // Passo 3: Thread 2 bate na porta e é bloqueada
+        // TEMPO 1800ms: Thread 2 bate no bloqueio
         setTimeout(() => {
-            legenda.innerText = "Thread 2 é colocada em espera (conflito detectado).";
+            legenda.innerText = "Thread 2 atinge a tabela, mas encontra o Lock. Fica em espera forçada pelo banco.";
+            
+            // Visual
             t2.classList.replace('bg-info', 'bg-danger');
             t2.innerHTML = "<strong>Thread 2</strong><br><small>Bloqueada 🛑</small>";
+
+            // Log sincronizado
+            escreverLog("[Thread-2] ⏳ Banco bloqueou a requisição. Aguardando liberação do recurso...", "text-danger");
         }, 1800);
 
-        // Passo 4: Fim da transação (3 a 4 segundos depois)
+        // TEMPO 4200ms: Fim da transação (3 segundos depois)
         setTimeout(() => {
-            legenda.innerText = "Thread 1 salva com sucesso. Thread 2 sofre Rollback.";
+            legenda.innerText = "Thread 1 finaliza com sucesso. O banco libera a fila, Thread 2 percebe a vaga preenchida e cancela.";
+            
+            // Visual
             t1.classList.replace('bg-warning', 'bg-success');
             t1.innerHTML = "<strong>Thread 1</strong><br><small>Salvo ✅</small>";
-            
-            db.style.borderColor = "#198754"; // Verde
+            db.style.borderColor = "#198754"; // Fica verde
             dbStatus.className = "badge bg-success";
             dbStatus.innerText = "ATUALIZADO";
+            t2.style.transform = "translateX(0)"; // Thread 2 recua
 
-            t2.style.transform = "translateX(0)"; // T2 volta pra trás
-        }, 4200); // 4200ms para bater com os 3 segundos do time.sleep() do backend
+            // Log sincronizado
+            escreverLog("[Thread-1] ✅ SUCESSO: Escala cadastrada e Lock liberado.", "text-success");
+            escreverLog("[Thread-2] 🛑 CONFLITO DETECTADO: A vaga foi preenchida enquanto esperava. Abortando transação.", "text-danger");
+            escreverLog("\n--- Simulação Finalizada ---", "text-muted");
+        }, 4200);
     }
 
-    // --- 3. FUNÇÃO PRINCIPAL (CHAMA API E ANIMAÇÃO) ---
+    // Função Principal que controla os botões e chama o Backend
     async function rodarSimulacao() {
         const btn = document.getElementById('btn-simular');
         const spinner = document.getElementById('loading-spinner');
         const loadingText = document.getElementById('loading-text');
-        const terminal = document.getElementById('terminal-output');
 
-        // Bloqueia botão e exibe loading
+        // Bloqueia botão para não clicar duas vezes seguidas
         btn.disabled = true;
         spinner.style.display = 'inline-block';
         loadingText.style.display = 'inline';
-        terminal.innerHTML = "Disparando threads concorrentes...\n";
 
-        // Força a tela de animação a aparecer quando clica no Play
-        alternarAba('animacao');
-        
-        // Dispara a coreografia dos bloquinhos
-        executarAnimacao();
+        // Dispara a animação visual e os logs (no frontend)
+        executarCoreografiaSincronizada();
 
         try {
-            // Dispara a requisição real pro Backend
-            const response = await fetch('/api/simular-concorrencia', {
+            // Dispara a requisição REAL para o backend Python executar a query no PostgreSQL
+            await fetch('/api/simular-concorrencia', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });
 
-            const data = await response.json();
-
-            // Escreve os logs reais que voltaram do banco
-            terminal.innerHTML = ""; 
-            data.logs.forEach(log => {
-                let colorClass = 'text-light';
-                if (log.includes('SUCESSO') || log.includes('✅')) colorClass = 'text-success';
-                if (log.includes('CONFLITO') || log.includes('ERRO') || log.includes('🛑') || log.includes('❌')) colorClass = 'text-danger';
-                if (log.includes('Lock adquirido')) colorClass = 'text-warning';
-
-                terminal.innerHTML += `<span class="${colorClass}">${log}</span>\n`;
-            });
-
         } catch (error) {
-            terminal.innerHTML += `<span class="text-danger">Erro de rede ao conectar com o servidor: ${error}</span>\n`;
+            escreverLog(`\n[ERRO] Falha de comunicação com o servidor backend: ${error}`, "text-danger");
         } finally {
-            // Libera o botão após o término (independente do tempo da animação)
-            btn.disabled = false;
-            spinner.style.display = 'none';
-            loadingText.style.display = 'none';
-            terminal.innerHTML += "\n--- Simulação Finalizada ---";
+            // Libera o botão 4.5 segundos depois, quando toda a animação tiver terminado
+            setTimeout(() => {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                loadingText.style.display = 'none';
+            }, 4500);
         }
     }
 </script>

@@ -1,49 +1,78 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-hospital"></i> Pacientes Internados</h2>
-    <span class="badge bg-primary text-white">Consulta via View SQL</span>
+<!-- ============================================================ -->
+<!-- CABEÇALHO -->
+<!-- ============================================================ -->
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 pb-3 border-bottom">
+    <div>
+        <span class="text-uppercase small fw-semibold text-primary d-block mb-1" style="letter-spacing:.08em;">
+            Visão Hospitalar
+        </span>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-hospital text-primary me-2"></i>Pacientes Internados
+        </h2>
+        <p class="text-muted mb-0">Monitoramento ativo das ocupações de leitos nas unidades.</p>
+    </div>
+    <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-3 py-2 fw-medium" title="Gerado pela vw_pacientes_internados">
+        <i class="bi bi-database me-1 text-info"></i> Consulta via View SQL
+    </span>
 </div>
 
-<div class="card shadow-sm border-primary">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Listagem de Internações Ativas</h5>
-        <span class="badge bg-light text-primary">{{ internados|length }} Paciente(s)</span>
+<!-- ============================================================ -->
+<!-- CONTEÚDO PRINCIPAL (CARD & TABELA) -->
+<!-- ============================================================ -->
+<div class="card border-0 shadow-sm rounded-4 mb-5">
+    <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-3">
+            <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                <i class="bi bi-bed fs-5"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-0">Listagem de Internações Ativas</h5>
+        </div>
+        <span class="badge bg-light border text-primary rounded-pill px-3 py-2 fw-medium">
+            <i class="bi bi-people me-1"></i> {{ internados|length }} Paciente(s)
+        </span>
     </div>
+    
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 custom-table">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-3">ID Internação</th>
-                        <th>Paciente</th>
-                        <th>Unidade Alocada</th>
-                        <th>Residente Responsável</th>
-                        <th>Preceptor Supervisor</th>
-                        <th>Data/Hora de Entrada</th>
-                        <th>Status</th>
+                        <th class="ps-4 text-uppercase small text-muted fw-semibold">ID</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Paciente</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Unidade Alocada</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Residente Responsável</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Preceptor Supervisor</th>
+                        <th class="text-uppercase small text-muted fw-semibold">Data/Hora Entrada</th>
+                        <th class="text-uppercase small text-muted fw-semibold pe-4">Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for p in internados %}
                     <tr>
-                        <td class="ps-3 text-muted fw-bold">#{{ p.id_internacao }}</td>
-                        <td class="fw-medium">{{ p.nome_paciente }}</td>
-                        <td><span class="badge bg-secondary">{{ p.nome_unidade }}</span></td>
-                        <td>{{ p.nome_residente }}</td>
-                        <td>{{ p.nome_preceptor }}</td>
-                        <td>{{ p.data_hora_entrada.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td class="ps-4 text-muted fw-medium font-monospace small">#{{ p.id_internacao }}</td>
+                        <td class="fw-semibold text-dark">{{ p.nome_paciente }}</td>
                         <td>
-                            <span class="badge bg-danger rounded-pill">
-                                <i class="bi bi-circle-fill spinner-grow spinner-grow-sm" style="width: 0.5rem; height: 0.5rem;"></i> Internado
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill fw-medium px-3 py-1">{{ p.nome_unidade }}</span>
+                        </td>
+                        <td class="text-muted fw-medium">{{ p.nome_residente }}</td>
+                        <td class="text-muted fw-medium">{{ p.nome_preceptor }}</td>
+                        <td class="text-muted small fw-medium">
+                            <i class="bi bi-clock me-1"></i> {{ p.data_hora_entrada.strftime('%d/%m/%Y %H:%M') }}
+                        </td>
+                        <td class="pe-4">
+                            <!-- Efeito pulsante suave adaptado ao design corporativo -->
+                            <span class="badge bg-danger-subtle text-danger rounded-pill fw-medium px-3 py-1 d-inline-flex align-items-center">
+                                <i class="bi bi-circle-fill spinner-grow spinner-grow-sm me-2" style="width: 0.4rem; height: 0.4rem;"></i> Internado
                             </span>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
                         <td colspan="7" class="text-center text-muted py-5">
-                            <i class="bi bi-clipboard-check fs-2 d-block mb-2"></i>
+                            <i class="bi bi-clipboard-check fs-3 d-block mb-2 text-body-tertiary"></i>
                             Nenhum paciente internado no momento.
                         </td>
                     </tr>
@@ -53,4 +82,11 @@
         </div>
     </div>
 </div>
+
+<style>
+    /* Suaviza a transição do hover na tabela */
+    .custom-table tbody tr {
+        transition: background-color 0.15s ease-in-out;
+    }
+</style>
 {% endblock %}

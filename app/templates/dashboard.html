@@ -98,13 +98,13 @@
                 <button class="btn btn-outline-success btn-sm rounded-pill">Abrir alertas de supervisor</button>
             </a>
 
-            <!-- Operação 3 e 5 (Procedimentos) -->
-            <a href="{{ url_for('listar_atendimentos') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <!-- View 3 -->
+            <a href="{{ url_for('estatisticas_mensais') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="mb-1 text-warning text-dark">3 e 5. Listar Procedimentos & Remover (Regra de Faturamento)</h6>
-                    <small>Lista procedimentos usando joins implícitos e testa o bloqueio de exclusão em procedimentos faturados.</small>
+                    <h6 class="mb-1 text-warning text-dark">3. Estatísticas</h6>
+                    <small>Estatísticas gerais de média de atendimentos, procedimentos mais comuns e total de atendimentos por Unidade</small>
                 </div>
-                <button class="btn btn-outline-warning btn-sm rounded-pill">Ver Atendimentos</button>
+                <button class="btn btn-outline-warning btn-sm rounded-pill">Ver Estatísticas</button>
             </a>
 
         </div>

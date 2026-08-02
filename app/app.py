@@ -564,6 +564,14 @@ def alertas_supervisao():
     
     return render_template('alertas_supervisao.html', alertas=alertas)
 
+@app.route('/estatisticas/mensais')
+def estatisticas_mensais():
+    # Consulta a view agregada. O banco entrega a métrica mastigada.
+    query = text("SELECT * FROM vw_estatisticas_atendimentos_mensal ORDER BY mes DESC, nome_unidade")
+    estatisticas = db.session.execute(query).fetchall()
+    
+    return render_template('estatisticas_mensais.html', estatisticas=estatisticas)
+
 @app.route('/consultas-avancadas')
 def consultas_avancadas():
     return render_template(

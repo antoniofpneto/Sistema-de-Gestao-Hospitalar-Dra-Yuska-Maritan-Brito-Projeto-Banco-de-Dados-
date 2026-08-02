@@ -3,8 +3,7 @@ import os
 from sqlalchemy import text
 from app import app, db
 
-# Defina a ordem correta dos arquivos conforme a sua estrutura de pastas
-# Ajuste os caminhos relativos se a sua pasta sql estiver em outro nível
+
 SCRIPTS_SQL = [
     "../sql/ddl/01_create_tables.sql",
     "../sql/ddl/02_stored_procedures.sql",
@@ -17,8 +16,6 @@ def resetar_banco():
     with app.app_context():
         print("Iniciando limpeza profunda do banco de dados...")
         
-        # O comando abaixo apaga TODAS as tabelas, views, procedures e triggers
-        # do esquema padrão e recria um esquema vazio e limpo.
         db.session.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
         db.session.commit()
         
@@ -30,8 +27,7 @@ def resetar_banco():
                 with open(caminho_arquivo, 'r', encoding='utf-8') as file:
                     script_sql = file.read()
                     
-                    # O SQLAlchemy processa transações de forma diferente do DBeaver.
-                    # Removemos os BEGIN/COMMIT do script DML para evitar conflito com a session do SQLAlchemy.
+                    
                     script_sql = script_sql.replace('BEGIN;', '').replace('COMMIT;', '')
                     
                     # Executa o script inteiro

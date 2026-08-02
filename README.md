@@ -79,7 +79,7 @@ Bash
 pip install -r requirements.txt
 ```
 
-### 3. Configurando o Cofre de Senhas (.env)
+### 3. Configurando as Senhas (.env)
 
 A aplicação precisa saber como acessar o seu banco de dados, mas não deixamos senhas expostas no código.
 
@@ -95,13 +95,16 @@ DB_PORT=5432
 DB_NAME=gestao_hospitalar
 ```
 
-### 4. Iniciando os arquivos SQL, caso não tenham sido ativados:
-1. `psql -U postgres -d gestao_hospitalar -f sql/ddl/01_create_tables.sql`
-2. `psql -U postgres -d gestao_hospitalar -f sql/ddl/02_stored_procedures.sql`
-3. `psql -U postgres -d gestao_hospitalar -f sql/ddl/03_triggers.sql`
-4. `psql -U postgres -d gestao_hospitalar -f sql/dml/01_dados_teste.sql`
+### 4. Criando o banco de dados:
+1. Acesse o cliente `psql` no terminal: `psql -U postgres`
+2. Crie o banco de dados: `CREATE DATABASE gestao_hospitalar;` *(Nota: ajuste o nome conforme sua preferência)*
+3. Saia do psql: `\q`
 
-### 5. Iniciando o Servidor
+### 5. Rodando os scripts sql:
+1. Navegue até a pasta da aplicação: `cd app`
+2. Execute o script `python reset_banco.py`
+
+### 6. Iniciando o Servidor
 Com tudo configurado, basta ligar o servidor web:
 1. Navegue até a pasta da aplicação: `cd app`
 2. Execute o sistema: `python app.py`

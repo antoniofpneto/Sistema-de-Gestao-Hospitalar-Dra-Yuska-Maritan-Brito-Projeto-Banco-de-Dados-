@@ -1,7 +1,7 @@
 # app.py
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade, Procedimento, Profissional, Escala, EspecialidadeProfissional, AuditoriaAtendimento
+from models import db, Pessoa, Paciente, Preceptor, Residente, Atendimento, ProcedimentoRealizado, Unidade, Procedimento, Profissional, Escala, EspecialidadeProfissional, AuditoriaAtendimento, Internacao
 import consultas_avancadas as ca
 from dotenv import load_dotenv, find_dotenv
 from sqlalchemy import func, text, or_
@@ -197,7 +197,17 @@ def listar_pacientes():
 def detalhe_paciente(id_pessoa):
     # Busca o paciente específico pelo ID; se não achar, retorna erro 404
     paciente = Paciente.query.get_or_404(id_pessoa)
-    return render_template('paciente_detalhe.html', paciente=paciente)
+
+    internacao_ativa = Internacao.query.filter_by(
+        id_paciente=id_pessoa, 
+        data_hora_saida=None
+    ).first()
+
+    return render_template(
+        'paciente_detalhe.html',
+        paciente=paciente, 
+        internacao_ativa=internacao_ativa
+    )
 
 
 

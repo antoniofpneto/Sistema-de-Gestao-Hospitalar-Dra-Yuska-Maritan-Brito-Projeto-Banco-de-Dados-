@@ -1,33 +1,47 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="mb-3">
-            <a href="/paciente/{{ paciente.id_pessoa }}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left"></i> Voltar ao Prontuário
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-8 col-md-10">
+        
+        <!-- NAVEGAÇÃO -->
+        <div class="mb-4">
+            <a href="/paciente/{{ paciente.id_pessoa }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-medium transition-hover">
+                <i class="bi bi-arrow-left me-1"></i> Voltar ao Prontuário
             </a>
         </div>
 
-        <div class="card shadow-sm border-primary">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Editar Dados do Paciente</h5>
-                <span class="badge bg-light text-dark">ID: #{{ paciente.id_pessoa }}</span>
+        <!-- CARD DO FORMULÁRIO -->
+        <div class="card corporate-modal border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="bi bi-pencil-square fs-5"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-0">Editar Dados do Paciente</h5>
+                </div>
+                <span class="badge bg-light border text-secondary font-monospace rounded-pill px-3 py-2 fw-medium">
+                    ID: #{{ paciente.id_pessoa }}
+                </span>
             </div>
-            <div class="card-body">
+            
+            <div class="card-body px-4 py-4">
                 <form action="/paciente/editar/{{ paciente.id_pessoa }}" method="POST">
                     
-                    <h6 class="text-muted mb-3">Informações Pessoais (Tabela Pessoa)</h6>
+                    <!-- SESSÃO 1: DADOS PESSOAIS -->
+                    <h6 class="section-label mb-3"><i class="bi bi-person-badge me-2"></i>Informações Pessoais (Tabela Pessoa)</h6>
                     
-                    <div class="mb-3">
-                        <label class="form-label">Nome Completo</label>
-                        <input type="text" class="form-control" name="nome" value="{{ paciente.pessoa.nome }}" required>
+                    <div class="row mb-2">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" name="nome" value="{{ paciente.pessoa.nome }}" required>
+                        </div>
                     </div>
 
-                    <div class="row">
+                    <div class="row mb-2">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">CPF (11 dígitos)</label>
-                            <input type="text" class="form-control" name="cpf" value="{{ paciente.pessoa.cpf }}" maxlength="11" required>
+                            <input type="text" class="form-control font-monospace" name="cpf" value="{{ paciente.pessoa.cpf }}" maxlength="11" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Data de Nascimento</label>
@@ -35,28 +49,29 @@
                         </div>
                     </div>
 
-                    <div class="row">
+                    <div class="row mb-4">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Telefone (Só números)</label>
-                            <input type="text" class="form-control" name="telefone" value="{{ paciente.pessoa.telefone }}" required>
+                            <input type="text" class="form-control font-monospace" name="telefone" value="{{ paciente.pessoa.telefone }}" required>
                         </div>
                         <div class="col-md-6 mb-3 d-flex align-items-center">
-                            <div class="form-check mt-4">
-                                <input class="form-check-input" type="checkbox" name="is_flamengo" id="is_flamengo" {% if paciente.pessoa.is_flamengo %}checked{% endif %}>
-                                <label class="form-check-label fw-bold text-danger" for="is_flamengo">
-                                    É Flamenguista? 🔴⚫
+                            <!-- Checkbox modernizado para Switch -->
+                            <div class="form-check form-switch mt-md-4 ms-1">
+                                <input class="form-check-input" type="checkbox" role="switch" name="is_flamengo" id="is_flamengo" {% if paciente.pessoa.is_flamengo %}checked{% endif %}>
+                                <label class="form-check-label fw-medium text-dark ms-2" for="is_flamengo">
+                                    É Flamenguista? <span class="ms-1">🔴⚫</span>
                                 </label>
                             </div>
                         </div>
                     </div>
 
-                    <hr class="my-4">
-                    <h6 class="text-muted mb-3">Informações Clínicas/Convênio (Tabela Paciente)</h6>
+                    <!-- SESSÃO 2: DADOS CLÍNICOS -->
+                    <h6 class="section-label mb-3 mt-2"><i class="bi bi-heart-pulse me-2"></i>Informações Clínicas/Convênio (Tabela Paciente)</h6>
 
-                    <div class="row">
+                    <div class="row mb-2">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Número do Convênio</label>
-                            <input type="text" class="form-control" name="num_convenio" value="{{ paciente.num_convenio or '' }}" placeholder="Deixe em branco para SUS">
+                            <input type="text" class="form-control font-monospace" name="num_convenio" value="{{ paciente.num_convenio or '' }}" placeholder="Deixe em branco para SUS">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Grupo Sanguíneo</label>
@@ -69,9 +84,10 @@
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2 mt-4">
-                        <a href="/paciente/{{ paciente.id_pessoa }}" class="btn btn-secondary">Cancelar</a>
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle"></i> Salvar Alterações</button>
+                    <!-- BOTÕES DE AÇÃO -->
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="/paciente/{{ paciente.id_pessoa }}" class="btn btn-outline-secondary rounded-3 px-4 transition-hover">Cancelar</a>
+                        <button type="submit" class="btn btn-primary rounded-3 px-4 transition-hover"><i class="bi bi-save me-1"></i> Salvar Alterações</button>
                     </div>
 
                 </form>
@@ -79,4 +95,46 @@
         </div>
     </div>
 </div>
+
+<!-- ============================================================ -->
+<!-- ESTILOS CORPORATIVOS -->
+<!-- ============================================================ -->
+<style>
+    .transition-hover {
+        transition: all .2s ease-in-out;
+    }
+    .transition-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 .25rem .5rem rgba(0,0,0,.08);
+    }
+
+    .section-label {
+        text-transform: uppercase;
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        color: #495057;
+        padding-bottom: .6rem;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    .corporate-modal .form-label {
+        color: #6c757d;
+        font-size: .8rem;
+        font-weight: 600;
+        margin-bottom: .35rem;
+    }
+    
+    .corporate-modal .form-control,
+    .corporate-modal .form-select {
+        border-radius: .6rem;
+        border-color: #dee2e6;
+    }
+    
+    .corporate-modal .form-control:focus,
+    .corporate-modal .form-select:focus {
+        border-color: rgba(13, 110, 253, .5);
+        box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .12);
+    }
+</style>
 {% endblock %}

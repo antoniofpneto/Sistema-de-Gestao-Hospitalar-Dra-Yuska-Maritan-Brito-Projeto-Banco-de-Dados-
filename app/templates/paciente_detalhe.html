@@ -313,5 +313,40 @@
         border-color: rgba(220, 53, 69, .5);
         box-shadow: 0 0 0 .2rem rgba(220, 53, 69, .12);
     }
+
+    /* ========================================================= */
+    /* ADAPTAÇÃO DA LINHA DO TEMPO PARA O MODO FLAMENGO          */
+    /* ========================================================= */
+
+    /* 1. Remove o fundo branco teimoso dos itens da lista */
+    body.modo-flamengo .list-group-item {
+        background-color: transparent !important;
+        border-color: #444 !important;
+        color: #e9ecef !important;
+    }
+
+    /* 2. Escurece a linha vertical da timeline para combinar com o fundo escuro */
+    body.modo-flamengo .timeline-item::before {
+        background-color: #444 !important;
+    }
+
+    /* 3. Transforma a bolinha verde nativa em uma bolinha dourada com borda vermelha */
+    body.modo-flamengo .timeline-dot {
+        background-color: #FFD700 !important; /* Dourado */
+        border-color: #121212 !important; /* Cor que simula o recorte no fundo escuro */
+        box-shadow: 0 0 0 2px #b30000 !important; /* Aro vermelho no lugar do success nativo */
+    }
+
+    /* 4. Força os badges de duração e os ícones a ganharem destaque dourado */
+    body.modo-flamengo .list-group-item .bg-light {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border-color: #555 !important;
+        color: #FFD700 !important;
+    }
+    
+    body.modo-flamengo .list-group-item .text-primary,
+    body.modo-flamengo .list-group-item .text-success {
+        color: #FFD700 !important;
+    }
 </style>
 {% endblock %}

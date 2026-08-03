@@ -243,7 +243,7 @@ INSERT INTO INTERNACAO (id_paciente, id_unidade, id_residente, id_preceptor, dat
 -- =========================================================================
 INSERT INTO HISTORICO_PAPEL (id_profissional, papel, data_inicio, data_fim) VALUES
 (11, 'Residente', '1999-03-01', '2004-03-01'),
-(11, 'Preceptor', '2005-04-12', NULL),
+(11, 'Preceptor', '2005-04-12', '2010-01-01'),
 (12, 'Residente', '1995-02-01', '2000-08-01'),
 (12, 'Preceptor', '2000-09-01', NULL),
 (31, 'Residente', '1998-03-01', '2003-02-28'),

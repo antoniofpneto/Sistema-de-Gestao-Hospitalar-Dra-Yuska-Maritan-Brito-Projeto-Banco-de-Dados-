@@ -45,7 +45,7 @@
                 </thead>
                 <tbody>
                     {% for p in pacientes %}
-                    <tr>
+                    <tr class="{% if p.pessoa.is_flamengo %}linha-flamenguista{% endif %}">
                         <td class="ps-4 text-muted fw-medium font-monospace small">#{{ p.id_pessoa }}</td>
                         <td class="fw-semibold text-dark">{{ p.pessoa.nome }}</td>
                         <td class="text-muted font-monospace small">{{ p.pessoa.cpf | cpf }}</td>

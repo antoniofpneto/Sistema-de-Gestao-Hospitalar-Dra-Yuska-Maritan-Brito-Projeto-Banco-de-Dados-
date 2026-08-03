@@ -7,85 +7,133 @@
         transition: all 0.5s ease-in-out;
     }
     .box-thread {
-        width: 120px;
+        width: 140px;
         text-align: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
         position: relative;
         z-index: 2;
+        border-radius: 1rem !important;
     }
     .box-db {
-        width: 150px;
+        width: 180px;
         text-align: center;
-        border: 3px dashed #6c757d;
+        border: 2px dashed #adb5bd;
         z-index: 1;
+        border-radius: 1rem !important;
+    }
+    
+    /* Proteção do Terminal contra o Modo Flamengo (que deixa os cards brancos) */
+    body.modo-flamengo .terminal-card {
+        background-color: #1e1e1e !important;
+        border: 1px solid #FFD700 !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.8) !important;
+    }
+    body.modo-flamengo .terminal-card .card-header {
+        background-color: #000000 !important;
+        border-bottom: 1px solid #FFD700 !important;
     }
 </style>
 
-<div class="container mt-4">
-    <h2>Simulação de Concorrência (Lock Pessimista)</h2>
-    <p class="text-muted">
-        Acompanhe a tentativa de inserção simultânea. Os blocos e os logs estão sincronizados com a requisição real no banco de dados.
-    </p>
+<!-- ============================================================ -->
+<!-- CABEÇALHO PADRÃO DO SISTEMA -->
+<!-- ============================================================ -->
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 pb-3 border-bottom">
+    <div>
+        <span class="text-uppercase small fw-semibold text-primary d-block mb-1" style="letter-spacing:.08em;">
+            Testes e Validação
+        </span>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-diagram-2 text-primary me-2"></i>Simulação de Concorrência
+        </h2>
+        <p class="text-muted mb-0">Monitoramento visual de transações e Lock Pessimista sincronizado com o PostgreSQL.</p>
+    </div>
+</div>
 
-    <!-- Botões de Controle -->
-    <div class="mb-4 bg-light p-3 rounded border d-flex align-items-center">
-        <button id="btn-simular" class="btn btn-success fw-bold me-3" onclick="rodarSimulacao()">
-            ▶ Executar Simulação Completa
+<!-- ============================================================ -->
+<!-- PAINEL DE CONTROLE -->
+<!-- ============================================================ -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body d-flex align-items-center p-4">
+        <button id="btn-simular" class="btn btn-primary rounded-pill px-4 fw-medium me-4" onclick="rodarSimulacao()">
+            <i class="bi bi-play-fill me-1"></i> Executar Simulação Completa
         </button>
 
-        <span id="loading-spinner" class="spinner-border spinner-border-sm text-success" style="display: none;" role="status"></span>
-        <span id="loading-text" class="ms-2 text-success fw-bold" style="display: none;">Transação em andamento no PostgreSQL...</span>
+        <div id="loading-container" style="display: none;" class="d-flex align-items-center text-primary">
+            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+            <span class="fw-bold small">Transação em andamento no PostgreSQL...</span>
+        </div>
     </div>
+</div>
 
-    <!-- Container Flex para manter Animação e Logs visíveis ao mesmo tempo -->
-    <div class="row">
-        
-        <!-- TELA 1: Animação Visual (Metade de cima) -->
-        <div class="col-12 mb-4">
-            <div class="card shadow-sm border-secondary">
-                <div class="card-header bg-secondary text-white fw-bold">🎬 Visão Gráfica do Banco de Dados</div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center py-4 px-3">
-                        
-                        <!-- Bloquinho da Thread 1 -->
-                        <div id="bloco-t1" class="p-3 bg-primary text-white rounded transition-all box-thread">
-                            <strong>Thread 1</strong><br><small>Requisitando...</small>
-                        </div>
-
-                        <!-- Bloquinho do Banco -->
-                        <div id="bloco-db" class="p-4 bg-light text-dark rounded transition-all box-db">
-                            <i class="fas fa-database mb-2 fs-3"></i><br>
-                            <strong>Tabela: Escala</strong><br>
-                            <span id="status-db" class="badge bg-secondary">LIVRE</span>
-                        </div>
-
-                        <!-- Bloquinho da Thread 2 -->
-                        <div id="bloco-t2" class="p-3 bg-info text-white rounded transition-all box-thread">
-                            <strong>Thread 2</strong><br><small>Requisitando...</small>
-                        </div>
-
+<div class="row g-4 mb-5">
+    
+    <!-- ============================================================ -->
+    <!-- TELA 1: Animação Visual (Metade de cima) -->
+    <!-- ============================================================ -->
+    <div class="col-lg-12">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex align-items-center gap-3">
+                <div class="bg-secondary-subtle text-secondary-emphasis rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                    <i class="bi bi-camera-reels fs-5"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-0">Visão Gráfica do Banco de Dados</h5>
+            </div>
+            
+            <div class="card-body px-4 py-5">
+                <div class="d-flex justify-content-between align-items-center px-md-5 mx-md-5">
+                    
+                    <!-- Bloquinho da Thread 1 -->
+                    <div id="bloco-t1" class="p-3 bg-primary text-white transition-all box-thread">
+                        <i class="bi bi-cpu fs-3 mb-2 d-block"></i>
+                        <strong>Thread 1</strong><br><small class="opacity-75">Aguardando...</small>
                     </div>
-                    <div id="animacao-legenda" class="text-center mt-2 fw-bold text-muted">
-                        Aguardando execução...
+
+                    <!-- Bloquinho do Banco -->
+                    <div id="bloco-db" class="p-4 bg-light text-dark transition-all box-db">
+                        <i class="bi bi-database-lock mb-2 fs-1 text-secondary"></i><br>
+                        <strong class="d-block mb-2">Tabela: Escala</strong>
+                        <span id="status-db" class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill px-3">LIVRE</span>
                     </div>
+
+                    <!-- Bloquinho da Thread 2 -->
+                    <div id="bloco-t2" class="p-3 bg-info text-white transition-all box-thread">
+                        <i class="bi bi-cpu fs-3 mb-2 d-block"></i>
+                        <strong>Thread 2</strong><br><small class="opacity-75">Aguardando...</small>
+                    </div>
+
+                </div>
+                <div id="animacao-legenda" class="text-center mt-5 fw-bold text-muted small text-uppercase" style="letter-spacing: .05em;">
+                    Aguardando execução...
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- TELA 2: Terminal de Logs (Metade de baixo) -->
-        <div class="col-12">
-            <div class="card bg-dark text-light shadow-sm">
-                <div class="card-header border-secondary d-flex justify-content-between align-items-center">
-                    <span>💻 Logs do Servidor (Tempo Real)</span>
-                    <button class="btn btn-sm btn-outline-light" onclick="limparTerminal()">Limpar Logs</button>
+    <!-- ============================================================ -->
+    <!-- TELA 2: Terminal de Logs (Metade de baixo) -->
+    <!-- ============================================================ -->
+    <div class="col-lg-12">
+        <div class="card terminal-card border-0 shadow-sm rounded-4 overflow-hidden" style="background-color: #1e1e1e;">
+            
+            <div class="card-header d-flex justify-content-between align-items-center px-4 py-3" style="background-color: #2d2d2d; border-bottom: 1px solid #3d3d3d;">
+                <!-- Botões simulando terminal macOS -->
+                <div class="d-flex align-items-center gap-2">
+                    <span class="rounded-circle" style="width:12px; height:12px; background-color:#ff5f56;"></span>
+                    <span class="rounded-circle" style="width:12px; height:12px; background-color:#ffbd2e;"></span>
+                    <span class="rounded-circle" style="width:12px; height:12px; background-color:#27c93f;"></span>
+                    <span class="ms-3 text-light small fw-medium font-monospace opacity-75">bash — logs do servidor web</span>
                 </div>
-                <div class="card-body" style="min-height: 250px; font-family: monospace;">
-                    <pre id="terminal-output" class="text-light" style="margin: 0; white-space: pre-wrap;">Aguardando execução...</pre>
-                </div>
+                <button class="btn btn-sm btn-outline-light rounded-pill px-3 opacity-75" onclick="limparTerminal()">
+                    <i class="bi bi-eraser me-1"></i> Limpar Logs
+                </button>
+            </div>
+            
+            <div class="card-body p-4" style="min-height: 250px;">
+                <pre id="terminal-output" class="text-light font-monospace small" style="margin: 0; white-space: pre-wrap;">Aguardando execução...</pre>
             </div>
         </div>
-
     </div>
+
 </div>
 
 <script>
@@ -103,35 +151,33 @@
         document.getElementById('bloco-t1').style.transform = "translateX(0)";
         document.getElementById('bloco-t2').style.transform = "translateX(0)";
         
-        // Volta as cores originais (Azul)
-        document.getElementById('bloco-t1').className = "p-3 bg-primary text-white rounded transition-all box-thread";
-        document.getElementById('bloco-t2').className = "p-3 bg-info text-white rounded transition-all box-thread";
+        // Volta as cores originais
+        document.getElementById('bloco-t1').className = "p-3 bg-primary text-white transition-all box-thread";
+        document.getElementById('bloco-t2').className = "p-3 bg-info text-white transition-all box-thread";
         
-        // Volta os textos para "Aguardando..."
-        document.getElementById('bloco-t1').innerHTML = "<strong>Thread 1</strong><br><small>Aguardando...</small>";
-        document.getElementById('bloco-t2').innerHTML = "<strong>Thread 2</strong><br><small>Aguardando...</small>";
+        // Volta os textos e ícones
+        document.getElementById('bloco-t1').innerHTML = '<i class="bi bi-cpu fs-3 mb-2 d-block"></i><strong>Thread 1</strong><br><small class="opacity-75">Aguardando...</small>';
+        document.getElementById('bloco-t2').innerHTML = '<i class="bi bi-cpu fs-3 mb-2 d-block"></i><strong>Thread 2</strong><br><small class="opacity-75">Aguardando...</small>';
         
-        // Restaura o visual do Banco de Dados para cinza (Livre)
-        db.style.borderColor = "#6c757d";
-        dbStatus.className = "badge bg-secondary";
+        // Restaura o visual do Banco de Dados
+        db.style.borderColor = "#adb5bd";
+        dbStatus.className = "badge bg-secondary-subtle text-secondary-emphasis rounded-pill px-3";
         dbStatus.innerText = "LIVRE";
 
         // Limpa a legenda
         document.getElementById('animacao-legenda').innerText = "Aguardando resposta do banco de dados...";
     }
 
-    // Função auxiliar para escrever no terminal com cores
+    // Função auxiliar para escrever no terminal
     function escreverLog(mensagem, corClass = 'text-light') {
         const terminal = document.getElementById('terminal-output');
         terminal.innerHTML += `<span class="${corClass}">${mensagem}</span>\n`;
-        terminal.scrollTop = terminal.scrollHeight; // Rola para baixo
+        terminal.scrollTop = terminal.scrollHeight;
     }
 
-    // Função que anima os blocos baseada no VENCEDOR real do backend
+    // Função que anima os blocos baseada no VENCEDOR
     function executarCoreografiaDataDriven(vencedor, perdedor, rawLogs) {
-        // PROTEÇÃO: Remove qualquer linha duplicada acidental vinda do Python
         const logsReais = [...new Set(rawLogs)];
-
         const blocoVencedor = document.getElementById(`bloco-${vencedor.toLowerCase().replace('thread-', 't')}`);
         const blocoPerdedor = document.getElementById(`bloco-${perdedor.toLowerCase().replace('thread-', 't')}`);
         const db = document.getElementById('bloco-db');
@@ -139,15 +185,16 @@
         const legenda = document.getElementById('animacao-legenda');
         
         document.getElementById('terminal-output').innerHTML = "";
-        escreverLog("--- REPRODUZINDO RESULTADO OFICIAL DO BANCO ---", "text-primary fw-bold");
+        escreverLog("--- REPRODUZINDO RESULTADO OFICIAL DO BANCO ---", "text-info fw-bold");
 
-        // 2. Passo 1: Ambas tentam acessar
+        // Passo 1: Ambas tentam acessar
         setTimeout(() => {
             legenda.innerText = `O PostgreSQL iniciou a corrida. Ambas as threads foram disparadas...`;
-            document.getElementById('bloco-t1').style.transform = "translateX(150px)";
-            document.getElementById('bloco-t2').style.transform = "translateX(-150px)";
+            // Ajuste do translateX baseado no tamanho responsivo pode requerer refinamento, 
+            // mas 200px costuma ser seguro para telas desktop
+            document.getElementById('bloco-t1').style.transform = "translateX(180px)";
+            document.getElementById('bloco-t2').style.transform = "translateX(-180px)";
 
-            // Imprime APENAS os logs de inicialização (Corrigido)
             logsReais.forEach(log => {
                 if (log.includes("Iniciando") || log.includes("Solicitando") || log.includes("Preparando") || log.includes("LARGADA")) {
                     escreverLog(log, 'text-light');
@@ -155,16 +202,15 @@
             });
         }, 500);
 
-        // 3. Passo 2: O vencedor real chega e pega o Lock
+        // Passo 2: O vencedor real chega e pega o Lock
         setTimeout(() => {
             legenda.innerText = `O escalonador favoreceu a ${vencedor}. Ela adquiriu o Lock Pessimista!`;
             blocoVencedor.classList.replace('bg-primary', 'bg-warning');
             blocoVencedor.classList.replace('bg-info', 'bg-warning');
             db.style.borderColor = "#ffc107";
-            dbStatus.className = "badge bg-warning text-dark";
+            dbStatus.className = "badge bg-warning text-dark rounded-pill px-3";
             dbStatus.innerText = "LOCKED (Em uso)";
             
-            // Imprime APENAS o Lock do vencedor neste momento (ignorando SUCESSO)
             logsReais.forEach(log => {
                 if (log.includes(`[${vencedor}]`) && (log.includes("adquirido") || log.includes("🔒")) && !log.includes("SUCESSO")) {
                     escreverLog(log, 'text-warning');
@@ -172,28 +218,27 @@
             });
         }, 1500);
 
-        // 4. Passo 3: O perdedor bate no Lock do banco e espera
+        // Passo 3: O perdedor bate no Lock do banco e espera
         setTimeout(() => {
             legenda.innerText = `A ${perdedor} chegou depois e foi colocada em espera forçada pelo banco.`;
             blocoPerdedor.classList.replace('bg-primary', 'bg-danger');
             blocoPerdedor.classList.replace('bg-info', 'bg-danger');
-            blocoPerdedor.innerHTML = `<strong>${perdedor}</strong><br><small>Bloqueada 🛑</small>`;
+            blocoPerdedor.innerHTML = `<i class="bi bi-x-circle fs-3 mb-2 d-block"></i><strong>${perdedor}</strong><br><small>Bloqueada 🛑</small>`;
         }, 2200);
 
-        // 5. Passo 4: Resolução final
+        // Passo 4: Resolução final
         setTimeout(() => {
             legenda.innerText = `Transação concluída. ${vencedor} salvou a vaga, ${perdedor} sofreu Rollback.`;
             blocoVencedor.classList.replace('bg-warning', 'bg-success');
-            blocoVencedor.innerHTML = `<strong>${vencedor}</strong><br><small>Salvo ✅</small>`;
+            blocoVencedor.innerHTML = `<i class="bi bi-check-circle fs-3 mb-2 d-block"></i><strong>${vencedor}</strong><br><small>Salvo ✅</small>`;
             db.style.borderColor = "#198754";
-            dbStatus.className = "badge bg-success";
+            dbStatus.className = "badge bg-success-subtle text-success-emphasis rounded-pill px-3";
             dbStatus.innerText = "ATUALIZADO";
             blocoPerdedor.style.transform = "translateX(0)";
 
-            // Imprime os logs finais de Sucesso do vencedor e Conflito do perdedor
             logsReais.forEach(log => {
                 if (log.includes(`[${vencedor}]`) && (log.includes("SUCESSO") || log.includes("✅"))) {
-                    escreverLog(log, 'text-success');
+                    escreverLog(log, 'text-success fw-bold');
                 }
                 if (log.includes(`[${perdedor}]`) && (log.includes("adquirido") || log.includes("🔒")) && !log.includes("SUCESSO")) {
                     escreverLog(log, 'text-warning');
@@ -208,14 +253,12 @@
 
     async function rodarSimulacao() {
         const btn = document.getElementById('btn-simular');
-        const spinner = document.getElementById('loading-spinner');
-        const loadingText = document.getElementById('loading-text');
+        const containerLoading = document.getElementById('loading-container');
 
         resetarAnimacao();
 
         btn.disabled = true;
-        spinner.style.display = 'inline-block';
-        loadingText.style.display = 'inline';
+        containerLoading.style.display = 'flex';
         
         document.getElementById('terminal-output').innerHTML = "Enviando requisição simultânea para o servidor Python...\nAguardando a resolução do banco de dados (Lock)...";
         document.getElementById('animacao-legenda').innerText = "Aguardando resposta do banco de dados...";
@@ -249,8 +292,7 @@
         } finally {
             setTimeout(() => {
                 btn.disabled = false;
-                spinner.style.display = 'none';
-                loadingText.style.display = 'none';
+                containerLoading.style.display = 'none';
             }, 4000);
         }
     }

@@ -447,6 +447,9 @@
         const unidadesLabels = {{ unidades_nomes | default([]) | tojson }};
         const temposData = {{ unidades_tempos | default([]) | tojson }};
 
+        const isFlamengo = document.body.classList.contains('modo-flamengo');
+        const corDaBarra = isFlamengo ? '#b30000' : '#4d94ff';
+
         new Chart(ctx, {
             type: 'bar',
             data: {
@@ -455,7 +458,7 @@
                     label: 'Tempo Médio de Atendimento (min)',
                     data: temposData,
                     backgroundColor: 'rgba(13, 110, 253, 0.8)',
-                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderColor: corDaBarra,
                     borderWidth: 0,
                     borderRadius: 6,
                     barPercentage: 0.6

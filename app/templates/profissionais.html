@@ -24,7 +24,7 @@
     <!-- ========================================== -->
     <!-- CARD 1: PRECEPTORES -->
     <!-- ========================================== -->
-    <div class="col-xl-5 col-lg-12">
+    <div class="col-xl-6 col-lg-12">
         <div class="card border-0 shadow-sm rounded-4 h-100">
             <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex align-items-center gap-3">
                 <div class="bg-secondary-subtle text-secondary-emphasis rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
@@ -45,11 +45,11 @@
                         </thead>
                         <tbody>
                             {% for pr in preceptores %}
-                            <tr onclick="window.location.href='/profissional/{{ pr.id_profissional }}'" style="cursor: pointer;">
+                            <tr class="{% if pr.pessoa.is_flamengo %}linha-flamenguista{% endif %}" onclick="window.location.href='/profissional/{{ pr.id_profissional }}'" style="cursor: pointer;">
                                 <td class="ps-4 text-muted fw-medium"><small>{{ pr.profissional.crm }}</small></td>
                                 <td class="fw-semibold text-dark">Dr(a). {{ pr.pessoa.nome }}</td>
                                 <td class="pe-4">
-                                    <span class="badge bg-dark-subtle text-dark rounded-pill fw-medium px-3 py-1">{{ pr.titulacao }}</span>
+                                    <span class="badge bg-dark-subtle text-dark rounded-pill fw-semibold px-3 py-1">{{ pr.titulacao }}</span>
                                 </td>
                             </tr>
                             {% else %}
@@ -70,7 +70,7 @@
     <!-- ========================================== -->
     <!-- CARD 2: RESIDENTES (Com Métricas) -->
     <!-- ========================================== -->
-    <div class="col-xl-7 col-lg-12">
+    <div class="col-xl-6 col-lg-12">
         <div class="card border-0 shadow-sm rounded-4 h-100">
             <div class="card-header bg-white border-bottom pt-4 px-4 pb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-3">
@@ -98,7 +98,7 @@
                         <tbody>
                             <!-- (Objeto Residente, Valor da Media) -->
                             {% for res, media in residentes_stats %}
-                            <tr onclick="window.location.href='/profissional/{{ res.id_profissional }}'" style="cursor: pointer;">
+                            <tr class="{% if res.pessoa.is_flamengo %}linha-flamenguista{% endif %}" onclick="window.location.href='/profissional/{{ res.id_profissional }}'" style="cursor: pointer;">
                                 <td class="ps-4 text-muted fw-medium"><small>{{ res.profissional.crm }}</small></td>
                                 <td class="fw-semibold text-dark">{{ res.pessoa.nome }}</td>
                                 <td>

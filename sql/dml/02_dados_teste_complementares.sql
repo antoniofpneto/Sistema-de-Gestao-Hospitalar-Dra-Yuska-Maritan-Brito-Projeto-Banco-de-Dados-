@@ -22,15 +22,15 @@ BEGIN;
 --    31-33: profissionais novos que serão preceptores (total de preceptores: 5 -> 8)
 -- =========================================================================
 INSERT INTO PESSOA (id_pessoa, nome, cpf, data_nascimento, is_flamengo, telefone) VALUES
-(16, 'Roberto Carlos Ximenes',     '66677788899', '1955-12-01', FALSE, '83992223301'),
-(17, 'Vanessa Lima Cordeiro',      '77788899900', '1999-05-14', TRUE,  '83992223302'),
-(18, 'Marcelo Antunes Braga',      '88899900011', '1982-09-09', FALSE, '83992223303'),
-(19, 'Priscila Farias Gadelha',    '99900011122', '1973-02-28', TRUE,  '83992223304'),
-(20, 'Diego Henrique Cunha',       '00011122233', '2010-06-30', FALSE, '83992223305'),
-(21, 'Gabriela Souto Ramalho',     '10112233445', '1988-04-17', TRUE,  '83992223306'),
+(16, 'Roberto Carlos Ximenes',     '66677788899', '1955-12-01', TRUE, '83992223301'),
+(17, 'Vanessa Lima Cordeiro',      '77788899900', '1999-05-14', FALSE,  '83992223302'),
+(18, 'Marcelo Antunes Braga',      '88899900011', '1982-09-09', TRUE, '83992223303'),
+(19, 'Priscila Farias Gadelha',    '99900011122', '1973-02-28', FALSE,  '83992223304'),
+(20, 'Diego Henrique Cunha',       '00011122233', '2010-06-30', TRUE, '83992223305'),
+(21, 'Gabriela Souto Ramalho',     '10112233445', '1988-04-17', FALSE,  '83992223306'),
 (22, 'Otávio Machado Guedes',      '20223344556', '1960-08-22', FALSE, '83992223307'),
 (23, 'Renata Belchior Pinto',      '30334455667', '1995-11-11', TRUE,  '83992223308'),
-(24, 'Felipe Andrade Correia',     '40445566778', '2001-07-04', FALSE, '83992223309'),
+(24, 'Felipe Andrade Correia',     '40445566778', '2001-07-04', TRUE, '83992223309'),
 (25, 'Isabela Nóbrega Castro',     '50556677889', '1979-03-23', TRUE,  '83992223310'),
 (26, 'Yasmin Cavalcante Diniz',    '60667788990', '1997-01-19', TRUE,  '83999991101'),
 (27, 'Pedro Henrique Bezerra',     '70778899001', '1996-10-05', FALSE, '83999991102'),

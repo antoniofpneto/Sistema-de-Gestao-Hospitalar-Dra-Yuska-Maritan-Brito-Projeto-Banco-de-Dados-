@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -7,30 +8,573 @@
     <!-- Importando o Bootstrap 5 via CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-</head>
-<body class="bg-light">
-
+    
     <style>
-        /* Transição suave e elegante para os links do menu */
+        /* ========================================================= */
+        /* ESTILOS PADRÃO DO SISTEMA (SaaS Moderno)                  */
+        /* ========================================================= */
+        
         .nav-hover-effect {
             transition: all 0.2s ease-in-out !important; 
             border-radius: 0.5rem;
             font-size: 0.9rem;
             font-weight: 500;
         }
-
-        /* Efeito de hover translúcido */
         .nav-hover-effect:hover {
             background-color: rgba(255, 255, 255, 0.12) !important;
             transform: translateY(-1px);
         }
-
-        /* Estilização da Navbar Superior */
         .custom-navbar {
             background: linear-gradient(135deg, #0d6efd, #0a58ca);
             box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .08);
+            transition: all 0.5s ease; /* Transição para o modo flamengo */
+        }
+        body {
+            transition: background 0.5s ease; /* Transição de fundo */
+        }
+
+        /* ========================================================= */
+        /* MODO FLAMENGO - EASTER EGG                                */
+        /* ========================================================= */
+
+        /* Estilo Base do Botão do Escudo */
+        .btn-flamengo {
+            background: transparent;
+            border: 2px solid transparent;
+            padding: 2px;
+            border-radius: 50%;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .logo-flamengo {
+            border-radius: 50%;
+            filter: grayscale(100%) opacity(0.7);
+            transition: all 0.4s ease;
+            background-color: white; /* Garante visibilidade no escudo transparente */
+        }
+        .btn-flamengo:hover .logo-flamengo {
+            filter: grayscale(50%) opacity(1);
+            transform: scale(1.05);
+        }
+
+        /* Aura Dourada (Modo Ativo) */
+        body.modo-flamengo .btn-flamengo {
+            border: 2px solid #FFD700;
+            box-shadow: 0 0 20px 8px rgba(255, 215, 0, 0.7);
+            transform: scale(1.1) rotate(360deg); /* Giro épico na ativação */
+            background-color: rgba(255, 215, 0, 0.2);
+        }
+        body.modo-flamengo .logo-flamengo {
+            filter: none; /* Revela as cores originais, se houver */
+        }
+
+        /* Cores do Sistema no Modo Flamengo */
+        body.modo-flamengo {
+            /* Imagem do background */
+            background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(180, 0, 0, 0.85)),
+                        url("{{ url_for('static', filename='fundo_mengo05.jpg') }}") !important;
+            background-size: cover !important;
+
+            background-attachment: fixed !important;
+        }
+        
+        /* Barra superior Rubro-Negra */
+        body.modo-flamengo .custom-navbar {
+            background: linear-gradient(135deg, #b30000, #000000) !important;
+            border-bottom: 3px solid #FFD700; /* Linha de ouro */
+        }
+        body.modo-flamengo .navbar-brand .bg-white {
+            background-color: #000 !important;
+            color: #b30000 !important;
+            border: 1px solid #FFD700;
+        }
+
+        /* Adaptação dos textos externos (vencendo o !important do Bootstrap) */
+        body.modo-flamengo .container > .d-flex > div > .text-dark,
+        body.modo-flamengo .container > .d-flex > div > .text-muted {
+            color: #ffffff !important;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
+        }
+
+
+        /* Força os textos soltos fora dos cartões a ficarem brancos */
+        body.modo-flamengo .container h2.text-dark:not(.card *),
+        body.modo-flamengo .container p.text-muted:not(.card *) {
+            color: #ffffff !important;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
+        }
+
+        /* Transforma o azul "Defesa Acadêmica" em Dourado */
+        body.modo-flamengo .container span.text-primary:not(.card *),
+        body.modo-flamengo .container .text-primary:not(.card *) {
+            color: #FFD700 !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+        }
+
+        /* Pílula do "Hospital Dra. Yuska" Rubro-Negra e Ouro */
+        body.modo-flamengo .container .badge:not(.card *) {
+            background: linear-gradient(135deg, #000000, #1a1a1a) !important;
+            color: #FFD700 !important;
+            border: 1px solid #b30000 !important;
+            box-shadow: 0 4px 15px rgba(179, 0, 0, 0.6) !important;
+            text-shadow: none !important;
+        }
+
+        /* Garante que o ícone do hospital dentro da pílula também fique dourado */
+        body.modo-flamengo .container .badge:not(.card *) i {
+            color: #FFD700 !important;
+        }
+
+        /* ========================================================= */
+        /* GENERALIZAÇÃO DO MODO FLAMENGO (DARK MODE COMPLETO)       */
+        /* ========================================================= */
+
+        /* 1. Cartões e Fundos Genéricos viram Escuros Translúcidos */
+        body.modo-flamengo .card,
+        body.modo-flamengo .bg-white,
+        body.modo-flamengo .bg-light {
+            background-color: rgba(15, 15, 15, 0.85) !important;
+            border: 1px solid #b30000 !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8) !important;
+            color: #f8f9fa !important;
+        }
+
+        /* 2. Cabeçalhos dos Cartões (Toque Dourado) */
+        body.modo-flamengo .card-header {
+            background-color: rgba(179, 0, 0, 0.15) !important;
+            border-bottom: 1px solid #b30000 !important;
+        }
+        body.modo-flamengo .card-header h5 {
+            color: #FFD700 !important;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* 3. Consertando as Tabelas (Sobrescrevendo as variáveis nativas do Bootstrap) */
+        body.modo-flamengo .table {
+            --bs-table-bg: transparent;
+            --bs-table-color: #e9ecef;
+            --bs-table-striped-bg: rgba(255, 255, 255, 0.03); /* Para tabelas listradas */
+            --bs-table-hover-bg: rgba(255, 255, 255, 0.08);
+            border-color: #444 !important;
+        }
+
+        /* Forçando TODAS as células (incluindo as rebeldes com fundo branco) a obedecerem o tema */
+        body.modo-flamengo .table > :not(caption) > * > * {
+            background-color: var(--bs-table-bg) !important;
+            color: var(--bs-table-color) !important;
+            border-bottom-color: #333 !important;
+        }
+
+        /* Cabeçalho das tabelas (Preto Absoluto com Letras Ouro) */
+        body.modo-flamengo .table thead th,
+        body.modo-flamengo .table .table-light th,
+        body.modo-flamengo .table .table-light td {
+            background-color: #0a0a0a !important;
+            color: #FFD700 !important;
+            border-bottom: 2px solid #b30000 !important;
+            text-shadow: none !important;
+        }
+
+        /* 4. Salvando as Pílulas (Badges) que "desaparecem" */
+        /* Afeta todos os badges comuns, mas preserva a regra dos VIPs dourados que fizemos antes */
+        body.modo-flamengo .badge {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #e9ecef !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: none !important;
+        }
+
+        /* 5. Textos Genéricos (Forçando alto contraste) */
+        body.modo-flamengo .text-dark,
+        body.modo-flamengo .text-muted,
+        body.modo-flamengo .text-secondary {
+            color: #ced4da !important;
+            text-shadow: none !important;
+        }
+
+        /* 6. Botões de ação das tabelas (Dourados) */
+        body.modo-flamengo .table .btn-outline-primary,
+        body.modo-flamengo .table .btn-outline-danger {
+            border-color: #FFD700 !important;
+            color: #FFD700 !important;
+            background-color: transparent !important;
+        }
+        body.modo-flamengo .table .btn-outline-primary:hover,
+        body.modo-flamengo .table .btn-outline-danger:hover {
+            background-color: #FFD700 !important;
+            color: #000 !important;
+        }
+
+        /* 7. Consertando o "Branco Ofuscante" ao passar o mouse (Hover) */
+        body.modo-flamengo .table-hover > tbody > tr:hover > td,
+        body.modo-flamengo .table-hover > tbody > tr:hover > th,
+        body.modo-flamengo .table > tbody > tr:hover > td,
+        body.modo-flamengo .table > tbody > tr:hover > th,
+        body.modo-flamengo .table > tbody > tr:hover > * {
+            background-color: rgba(255, 255, 255, 0.06) !important; /* Destaque sutil e translúcido */
+            color: #ffffff !important;
+            box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.2) !important; /* Anula o box-shadow nativo do Bootstrap */
+        }
+        
+        /* Remove o fundo/borda e adiciona apenas um brilho dourado (glow) no texto */
+        body.modo-flamengo .linha-flamenguista td {
+            background-color: transparent !important;
+            border-left: none !important;
+            /* Cria uma "aura" dourada em volta das letras */
+            text-shadow: 0 0 10px rgba(255, 215, 0, 5) !important; 
+            transition: all 0.3s ease;
+        }
+
+        /* Mágica do CSS: Adiciona a coroinha dinamicamente na 2ª coluna (Nome) */
+        body.modo-flamengo .linha-flamenguista td:nth-child(2)::after {
+            content: " 👑";
+            text-shadow: none !important; /* Mantém o emoji nítido, sem o glow */
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Transforma a pílula de "Sim" em um selo de ouro (Mantido) */
+        body.modo-flamengo .linha-flamenguista .badge.bg-success-subtle {
+            background: linear-gradient(135deg, #FFD700, #DAA520) !important;
+            color: #000 !important;
+            border: 1px solid #000 !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+            text-shadow: none !important;
+        }
+
+        /* Transforma as pílulas da 3ª coluna (Titulação e Ano) em selos de ouro */
+        body.modo-flamengo .linha-flamenguista td:nth-child(3) .badge {
+            background: linear-gradient(135deg, #FFD700, #DAA520) !important;
+            color: #000000 !important;
+            border: 1px solid #000000 !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
+            text-shadow: none !important;
+        }
+
+        /* Garante que os Modais escapem de contextos de empilhamento locais */
+        body.modo-flamengo .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        body.modo-flamengo .modal {
+            z-index: 1055 !important;
+        }
+        
+        /* ========================================================= */
+        /* ESTILIZAÇÃO DE FORMULÁRIOS E MODAIS (MODO FLAMENGO)       */
+        /* ========================================================= */
+
+        /* 1. Fundo do Modal e Bordas */
+        body.modo-flamengo .modal-content {
+            background-color: #121212 !important;
+            border: 2px solid #b30000 !important;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9) !important;
+            color: #e9ecef !important;
+        }
+        
+        /* Divisórias do Cabeçalho e Rodapé */
+        body.modo-flamengo .modal-header,
+        body.modo-flamengo .modal-footer {
+            border-color: #333 !important;
+        }
+        
+        /* Títulos, Subtítulos e Ícones internos do Modal em Ouro */
+        body.modo-flamengo .modal-content h5, 
+        body.modo-flamengo .modal-content .text-primary,
+        body.modo-flamengo .modal-content h6,
+        body.modo-flamengo .modal-content .small {
+            color: #FFD700 !important;
+        }
+
+        /* 2. Botão "X" de fechar (Invertendo a cor original preta para branca) */
+        body.modo-flamengo .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%) !important;
+        }
+
+        /* 3. Campos de Input e Select (Caixas de texto) */
+        body.modo-flamengo .form-control,
+        body.modo-flamengo .form-select {
+            background-color: #1e1e1e !important;
+            border: 1px solid #444 !important;
+            color: #f8f9fa !important;
+        }
+        
+        /* Textos de dica (Placeholder) */
+        body.modo-flamengo .form-control::placeholder,
+        body.modo-flamengo .form-select::placeholder {
+            color: #6c757d !important;
+        }
+
+        /* Efeito de brilho ao clicar (Focus) Dourado */
+        body.modo-flamengo .form-control:focus,
+        body.modo-flamengo .form-select:focus {
+            border-color: #FFD700 !important;
+            box-shadow: 0 0 0 0.25rem rgba(255, 215, 0, 0.25) !important;
+        }
+
+        /* Labels dos campos */
+        body.modo-flamengo .form-label {
+            color: #adb5bd !important;
+        }
+
+        /* 4. Botões de Ação Principais (Substituindo o Azul e o Verde) */
+        
+        /* Botão "Registrar Atendimento" (Primary) */
+        body.modo-flamengo .modal-content .btn-primary {
+            background: linear-gradient(135deg, #b30000, #800000) !important;
+            border: 1px solid #FFD700 !important;
+            color: #FFD700 !important;
+            font-weight: 600;
+        }
+        body.modo-flamengo .modal-content .btn-primary:hover {
+            background: #FFD700 !important;
+            color: #000 !important;
+        }
+
+        /* Botão "Adicionar Procedimento" (Outline Success) */
+        body.modo-flamengo .modal-content .btn-outline-success {
+            border-color: #FFD700 !important;
+            color: #FFD700 !important;
+            background: rgba(255, 215, 0, 0.05) !important;
+        }
+        body.modo-flamengo .modal-content .btn-outline-success:hover {
+            background: #FFD700 !important;
+            color: #000 !important;
+        }
+
+        /* Botão "Cancelar" */
+        body.modo-flamengo .modal-content .btn-outline-secondary,
+        body.modo-flamengo .modal-content .btn-light {
+            border-color: #555 !important;
+            color: #aaa !important;
+            background: transparent !important;
+        }
+        body.modo-flamengo .modal-content .btn-outline-secondary:hover {
+            background: #333 !important;
+            color: #fff !important;
+        }
+
+        /* ========================================================= */
+        /* CORREÇÕES FINAIS DE INCONSISTÊNCIAS (MODAIS E INPUTS)     */
+        /* ========================================================= */
+
+        /* Força o Cabeçalho e Rodapé a herdarem o fundo escuro */
+        body.modo-flamengo .modal-header,
+        body.modo-flamengo .modal-footer {
+            background-color: transparent !important; 
+            border-color: #333 !important;
+        }
+
+        /* Conserta os "Anexos" dos inputs (Ex: caixinhas de "Início" e "Min") */
+        body.modo-flamengo .input-group-text {
+            background-color: #2a2a2a !important;
+            border-color: #444 !important;
+            color: #adb5bd !important;
+        }
+
+        /* Conserta o fundo dos blocos internos (Ex: a linha de Adicionar Procedimento) */
+        body.modo-flamengo .modal-body .bg-white,
+        body.modo-flamengo .modal-body .bg-light,
+        body.modo-flamengo .modal-body .card {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border: 1px dashed #444 !important;
+        }
+
+        /* Conserta o botão "Cancelar" para não ficar com fundo branco sólido */
+        body.modo-flamengo .modal-footer .btn-light,
+        body.modo-flamengo .modal-footer .btn-outline-secondary {
+            background-color: transparent !important;
+            color: #adb5bd !important;
+            border-color: #555 !important;
+        }
+        body.modo-flamengo .modal-footer .btn-light:hover,
+        body.modo-flamengo .modal-footer .btn-outline-secondary:hover {
+            background-color: #333 !important;
+            color: #fff !important;
+        }
+
+        /* Conserta o botão da Lixeira (Excluir procedimento) */
+        body.modo-flamengo .btn-outline-danger {
+            background-color: transparent !important;
+            border-color: #ff4d4d !important;
+            color: #ff4d4d !important;
+        }
+        body.modo-flamengo .btn-outline-danger:hover {
+            background-color: #ff4d4d !important;
+            color: #fff !important;
+        }
+
+        body.modo-flamengo .bg-white,
+        body.modo-flamengo .bg-light,
+        body.modo-flamengo [style*="white"],
+        body.modo-flamengo [style*="#fff"],
+        body.modo-flamengo [style*="#FFF"] {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid #444 !important;
+            backdrop-filter: blur(5px);
+        }
+
+        body.modo-flamengo .bg-white .text-dark,
+        body.modo-flamengo .bg-light .text-dark,
+        body.modo-flamengo .card .text-dark,
+        body.modo-flamengo .bg-white .text-muted,
+        body.modo-flamengo .bg-light .text-muted,
+        body.modo-flamengo .card .text-muted {
+            color: #e9ecef !important;
+        }
+
+        body.modo-flamengo .bg-white h6,
+        body.modo-flamengo .bg-light h6,
+        body.modo-flamengo .card h6,
+        body.modo-flamengo .bg-white strong,
+        body.modo-flamengo .bg-light strong,
+        body.modo-flamengo .card strong {
+            color: #FFD700 !important;
+        }
+
+        /* Pequena animação para a coroa aparecer "pulando" */
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; display: inline-block; }
+            100% { transform: scale(1); opacity: 1; display: inline-block; }
+        }
+
+        /* ========================================================= */
+        /* REFATORAÇÃO MASSIVA — GENERALIZAÇÃO TOTAL DO MODO FLAMENGO */
+        /* Cobre utilitários *-subtle/*-emphasis do Bootstrap 5.3    */
+        /* (usados em quase todo badge/ícone do sistema) e as        */
+        /* classes customizadas criadas nas reestilizações página a  */
+        /* página (.roteiro-*, .section-label, .linha-procedimento,  */
+        /* .timeline-*, etc.), que não eram tocadas pelas regras     */
+        /* acima por não serem classes nativas do Bootstrap.         */
+        /* ========================================================= */
+
+        /* 1. TODOS os fundos "subtle" (bg-primary-subtle, bg-orange-subtle
+           inline-polyfill, etc.) viram translúcido escuro com borda rubra */
+        body.modo-flamengo [class*="-subtle"] {
+            background-color: rgba(255, 255, 255, 0.06) !important;
+            border-color: #b30000 !important;
+            color: #FFD700 !important;
+            text-shadow: none !important;
+        }
+        /* Danger mantém a leitura semântica de "alerta" em vermelho, não ouro */
+        body.modo-flamengo [class*="bg-danger-subtle"],
+        body.modo-flamengo [class*="text-danger-emphasis"] {
+            color: #ff6b6b !important;
+            border-color: #ff4d4d !important;
+        }
+        /* Qualquer texto "*-emphasis" (bg-*-subtle sempre vem acompanhado de
+           text-*-emphasis) segue a mesma regra de destaque em ouro */
+        body.modo-flamengo [class*="-emphasis"] {
+            color: #FFD700 !important;
+        }
+        body.modo-flamengo [class*="text-danger-emphasis"] {
+            color: #ff6b6b !important;
+        }
+
+        /* 2. Botões outline genéricos (fora de tabelas também) — antes só
+           .table .btn-outline-primary/.btn-outline-danger eram cobertos */
+        body.modo-flamengo .btn-outline-primary,
+        body.modo-flamengo .btn-outline-info,
+        body.modo-flamengo .btn-outline-success,
+        body.modo-flamengo .btn-outline-warning {
+            border-color: #FFD700 !important;
+            color: #FFD700 !important;
+            background-color: transparent !important;
+        }
+        body.modo-flamengo .btn-outline-primary:hover,
+        body.modo-flamengo .btn-outline-info:hover,
+        body.modo-flamengo .btn-outline-success:hover,
+        body.modo-flamengo .btn-outline-warning:hover {
+            background-color: #FFD700 !important;
+            color: #000 !important;
+            border-color: #FFD700 !important;
+        }
+        /* Botões desabilitados (ex.: Excluir procedimento já faturado) não
+           podem manter o cinza-claro nativo do Bootstrap */
+        body.modo-flamengo .btn:disabled,
+        body.modo-flamengo .btn.disabled {
+            background-color: rgba(255, 255, 255, 0.04) !important;
+            border-color: #444 !important;
+            color: #6c757d !important;
+            opacity: 1 !important;
+        }
+
+        /* 3. Rótulos de seção usados nos modais/formulários corporativos
+           (.section-label) — não são utilitário do Bootstrap, ficavam azuis
+           ou cinza-escuro sobre fundo escuro */
+        body.modo-flamengo .section-label {
+            color: #FFD700 !important;
+            border-bottom-color: #b30000 !important;
+        }
+
+        /* 4. Componentes do roteiro/timeline do Dashboard */
+        body.modo-flamengo .roteiro-pill {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-color: #b30000 !important;
+            color: #e9ecef !important;
+        }
+        body.modo-flamengo .roteiro-pill:hover {
+            background: linear-gradient(135deg, #b30000, #800000) !important;
+            color: #FFD700 !important;
+            border-color: #FFD700 !important;
+        }
+        body.modo-flamengo .roteiro-item {
+            background: rgba(255, 255, 255, 0.04) !important;
+            border-color: #444 !important;
+            color: #e9ecef !important;
+        }
+        body.modo-flamengo a.roteiro-item:hover {
+            border-color: #FFD700 !important;
+            box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .5) !important;
+        }
+        body.modo-flamengo .roteiro-highlight {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+            border-color: #444 !important;
+        }
+        body.modo-flamengo .roteiro-marker {
+            /* O "halo" que conecta os círculos numerados usava a cor de
+               fundo clara da página como referência; no escuro vira preto */
+            box-shadow: 0 0 0 4px #0d0d0d !important;
+        }
+        body.modo-flamengo .roteiro-final {
+            background: linear-gradient(120deg, #b30000, #000000) !important;
+            border: 1px solid #FFD700 !important;
+        }
+
+        /* 5. Ficha do Atendimento / cartões de informação vertical */
+        body.modo-flamengo .info-row {
+            border-bottom-color: #333 !important;
+        }
+        body.modo-flamengo .info-value {
+            color: #f8f9fa !important;
+        }
+        body.modo-flamengo .info-label {
+            color: #adb5bd !important;
+        }
+
+        /* 6. Linha dinâmica de procedimentos (injetada via JS no modal) */
+        body.modo-flamengo .linha-procedimento {
+            background-color: rgba(255, 255, 255, 0.04) !important;
+            border-color: #444 !important;
+        }
+
+        /* 7. Linha do tempo do Histórico de Atendimentos (paciente_detalhe) */
+        body.modo-flamengo .timeline-item::before {
+            background-color: #444 !important;
+        }
+        body.modo-flamengo .timeline-dot {
+            border-color: #121212 !important;
+        }
+        body.modo-flamengo .border-end-md {
+            border-color: #444 !important;
+        }
+
+        /* 8. Caixas da simulação de concorrência */
+        body.modo-flamengo .box-db {
+            border-color: #666 !important;
         }
     </style>
+</head>
+<body class="bg-light">
 
     <!-- Menu de Navegação Superior -->
     <nav class="navbar navbar-expand-lg navbar-dark custom-navbar mb-4 py-3">
@@ -85,9 +629,17 @@
                     
                     <!-- Botão de Destaque para Concorrência -->
                     <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
-                        <a class="btn btn-sm btn-light text-primary fw-semibold rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-2 transition-hover" href="{{ url_for('concorrencia_view') }}">
+                        <a class="btn btn-sm btn-light text-primary fw-semibold rounded-pill px-3 py-2 shadow-sm d-flex align-items-center gap-2 nav-hover-effect" href="{{ url_for('concorrencia_view') }}">
                             <i class="bi bi-shuffle"></i> Testar Concorrência
                         </a>
+                    </li>
+
+                    <!-- BOTÃO EASTER EGG (MODO FLAMENGO) -->
+                    <li class="nav-item d-flex align-items-center mt-3 mt-lg-0 border-start-lg ps-lg-2 border-white-50">
+                        <button id="toggle-flamengo" class="btn-flamengo" title="Ativar Modo Flamengo">
+                            <!-- Referenciando a imagem exata do escudo que você enviou -->
+                            <img src="{{ url_for('static', filename='image_eeb2a1.png') }}" onerror="this.src='image_eeb2a1.png'" alt="CRF" width="38" height="38" class="logo-flamengo">
+                        </button>
                     </li>
 
                 </ul>
@@ -96,11 +648,43 @@
     </nav>
 
     <!-- Área dinâmica onde o conteúdo das outras páginas será injetado -->
-    <div class="container">
+    <div class="container ">
         {% block content %}
         {% endblock %}
     </div>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script do Modo Flamengo -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnFlamengo = document.getElementById('toggle-flamengo');
+            const body = document.body;
+
+            // Ao carregar a página, verifica se o usuário já ativou antes
+            if (localStorage.getItem('modoFlamengo') === 'ativo') {
+                body.classList.add('modo-flamengo');
+            }
+
+            // Ação de Clique
+            btnFlamengo.addEventListener('click', () => {
+                body.classList.toggle('modo-flamengo');
+                
+                // Salva a escolha para não perder ao navegar para outra tela
+                if (body.classList.contains('modo-flamengo')) {
+                    localStorage.setItem('modoFlamengo', 'ativo');
+                } else {
+                    localStorage.setItem('modoFlamengo', 'inativo');
+                }
+
+                // Avisa componentes dinâmicos da página (ex.: gráficos Chart.js)
+                // que o tema mudou, sem precisar recarregar a página
+                document.dispatchEvent(new CustomEvent('flamengoToggled', {
+                    detail: { ativo: body.classList.contains('modo-flamengo') }
+                }));
+            });
+        });
+    </script>
 </body>
 </html>

@@ -72,6 +72,7 @@ EXCEPTION
 END;
 $$;
 
+
 -- Função para calcular o tempo médio entre a chegada do paciente e o início do primeiro procedimento realizado, agrupando por unidade
 CREATE OR REPLACE PROCEDURE sp_calcular_tempo_medio_espera(INOUT p_resultado REFCURSOR)
 LANGUAGE plpgsql
@@ -101,6 +102,7 @@ BEGIN
     ORDER BY u.id_unidade;
 END;
 $$;
+
 
 CREATE OR REPLACE PROCEDURE sp_reajustar_escala(
     IN p_id_residente INT,
@@ -145,6 +147,7 @@ BEGIN
 END;
 $$;
 
+
 -- Função do trigger de verificação de sobreposição de escala
 CREATE OR REPLACE FUNCTION trg_check_sobreposicao_escala_fn()
 RETURNS TRIGGER
@@ -166,6 +169,7 @@ BEGIN
     RETURN NEW;
 END;
 $$;
+
 
 -- Função do trigger de auditoria de atendimento
 CREATE OR REPLACE FUNCTION trg_audita_atendimento_fn()
@@ -218,6 +222,7 @@ BEGIN
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- Função do trigger de atualização de média de procedimentos
 CREATE OR REPLACE FUNCTION trg_atualiza_media_procedimentos_fn()

@@ -24,6 +24,7 @@ JOIN PRECEPTOR prec ON prec.id_profissional = i.id_preceptor
 JOIN PESSOA prep ON prep.id_pessoa = prec.id_profissional
 WHERE i.data_hora_saida IS NULL;
 
+
 -- View que retorna os residentes que ou não tem supervisor ou tem supervisor que não é um doutor
 CREATE OR REPLACE VIEW vw_residentes_sem_supervisor AS
 SELECT DISTINCT ON (e.id_residente)
@@ -53,6 +54,7 @@ WHERE prec.titulacao <> 'Doutor'
           AND hp.data_inicio <= CURRENT_DATE
           AND (hp.data_fim IS NULL OR hp.data_fim >= CURRENT_DATE)
     );
+
 
 -- View que retorna as estatísticas de atendimento, agrupados por mês e unidade
 CREATE OR REPLACE VIEW vw_estatisticas_atendimentos_mensal AS

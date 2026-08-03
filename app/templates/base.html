@@ -2,6 +2,36 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <!-- Script do Modo Flamengo -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnFlamengo = document.getElementById('toggle-flamengo');
+            const body = document.body;
+
+            // Ao carregar a página, verifica se o usuário já ativou antes
+            if (localStorage.getItem('modoFlamengo') === 'ativo') {
+                body.classList.add('modo-flamengo');
+            }
+
+            // Ação de Clique
+            btnFlamengo.addEventListener('click', () => {
+                body.classList.toggle('modo-flamengo');
+                
+                // Salva a escolha para não perder ao navegar para outra tela
+                if (body.classList.contains('modo-flamengo')) {
+                    localStorage.setItem('modoFlamengo', 'ativo');
+                } else {
+                    localStorage.setItem('modoFlamengo', 'inativo');
+                }
+
+                // Avisa componentes dinâmicos da página (ex.: gráficos Chart.js)
+                // que o tema mudou, sem precisar recarregar a página
+                document.dispatchEvent(new CustomEvent('flamengoToggled', {
+                    detail: { ativo: body.classList.contains('modo-flamengo') }
+                }));
+            });
+        });
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hospital Dra. Yuska</title>
@@ -10,12 +40,76 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     
     <style>
+
         /* ========================================================= */
-        /* ESTILOS PADRÃO DO SISTEMA (SaaS Moderno)                  */
+        /* TRAVA DE ANIMAÇÃO NO CARREGAMENTO (PRELOAD)               */
+        /* ========================================================= */
+        .preload, 
+        .preload *, 
+        .preload *::before, 
+        .preload *::after {
+            transition: none !important;
+        }
+
+        /* ========================================================= */
+        /* TRANSIÇÃO CINEMATOGRÁFICA DE TEMAS (DARK/LIGHT MODE)      */
         /* ========================================================= */
         
+        /* 1. Transição de cores e bordas de todos os elementos */
+        body, .card, .bg-white, .bg-light, .table, .table td, .table th, 
+        .modal-content, .modal-header, .modal-footer, .form-control, 
+        .form-select, .input-group-text, .btn, 
+        h1, h2, h3, h4, h5, h6, p, span, strong, a, .text-dark, .text-muted, .badge {
+            transition: background-color 0.5s ease, 
+                        color 0.5s ease, 
+                        border-color 0.5s ease, 
+                        box-shadow 0.5s ease,
+                        text-shadow 0.5s ease !important;
+        }
+
+        /* 2. Preparando o Body para receber a camada da imagem */
+        body {
+            position: relative;
+            background-color: #f8f9fa; /* Cor de fundo do Modo Padrão */
+            min-height: 100vh;
+            z-index: 0;
+        }
+
+        /* 3. A Camada Oculta: Fica invisível (opacity 0) esperando ser ativada */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1; /* Fica atrás de todo o sistema */
+            
+            /* A imagem do Maracanã e o gradiente vêm para cá */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.85), rgba(150, 0, 0, 0.9)), 
+                              url("{{ url_for('static', filename='fundo_mengo05.jpg') }}") !important;
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            
+            opacity: 0; /* Totalmente transparente */
+            visibility: hidden;
+            transition: opacity 0.8s ease-in-out, visibility 0.8s; /* Transição longa de 0.8s */
+        }
+
+        /* 4. O Gatilho: Quando o Modo Flamengo ativa, a camada aparece suavemente */
+        body.modo-flamengo::before {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Tira o fundo do body para a imagem aparecer por trás */
+        body.modo-flamengo {
+            background-color: transparent !important;
+        }
+
+        /* ========================================================= */
+        /* ESTILOS PADRÃO DO SISTEMA (Navbar)                        */
+        /* ========================================================= */
         .nav-hover-effect {
-            transition: all 0.2s ease-in-out !important; 
+            transition: background-color 0.2s ease, transform 0.2s ease !important;
             border-radius: 0.5rem;
             font-size: 0.9rem;
             font-weight: 500;
@@ -27,10 +121,7 @@
         .custom-navbar {
             background: linear-gradient(135deg, #0d6efd, #0a58ca);
             box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .08);
-            transition: all 0.5s ease; /* Transição para o modo flamengo */
-        }
-        body {
-            transition: background 0.5s ease; /* Transição de fundo */
+            /* Removido o transition: all daqui para não conflitar com a regra mestre */
         }
 
         /* ========================================================= */
@@ -70,14 +161,7 @@
         }
 
         /* Cores do Sistema no Modo Flamengo */
-        body.modo-flamengo {
-            /* Imagem do background */
-            background: linear-gradient(rgba(0, 0, 0, 0.85), rgba(180, 0, 0, 0.85)),
-                        url("{{ url_for('static', filename='fundo_mengo05.jpg') }}") !important;
-            background-size: cover !important;
-
-            background-attachment: fixed !important;
-        }
+        
         
         /* Barra superior Rubro-Negra */
         body.modo-flamengo .custom-navbar {
@@ -574,7 +658,7 @@
         }
     </style>
 </head>
-<body class="bg-light">
+<body class="preload" class="bg-light">
 
     <!-- Menu de Navegação Superior -->
     <nav class="navbar navbar-expand-lg navbar-dark custom-navbar mb-4 py-3">
@@ -656,34 +740,16 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Script do Modo Flamengo -->
+    
+    <!-- Script para liberar as transições CSS após o carregamento da página -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const btnFlamengo = document.getElementById('toggle-flamengo');
-            const body = document.body;
-
-            // Ao carregar a página, verifica se o usuário já ativou antes
-            if (localStorage.getItem('modoFlamengo') === 'ativo') {
-                body.classList.add('modo-flamengo');
-            }
-
-            // Ação de Clique
-            btnFlamengo.addEventListener('click', () => {
-                body.classList.toggle('modo-flamengo');
-                
-                // Salva a escolha para não perder ao navegar para outra tela
-                if (body.classList.contains('modo-flamengo')) {
-                    localStorage.setItem('modoFlamengo', 'ativo');
-                } else {
-                    localStorage.setItem('modoFlamengo', 'inativo');
-                }
-
-                // Avisa componentes dinâmicos da página (ex.: gráficos Chart.js)
-                // que o tema mudou, sem precisar recarregar a página
-                document.dispatchEvent(new CustomEvent('flamengoToggled', {
-                    detail: { ativo: body.classList.contains('modo-flamengo') }
-                }));
-            });
+        // Usamos DOMContentLoaded para disparar assim que a árvore HTML for montada
+        document.addEventListener("DOMContentLoaded", function() {
+            // Um pequeno delay de 50ms é invisível para o usuário, 
+            // mas é tempo de sobra para a CPU aplicar as classes do tema sem animá-las.
+            setTimeout(function() {
+                document.body.classList.remove('preload');
+            }, 50);
         });
     </script>
 </body>
